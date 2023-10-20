@@ -1,14 +1,14 @@
 from pydantic import Field
 from ayon_server.settings import BaseSettingsModel
-from .templated_workfile_build import TemplatedWorkfileBuildModel
+from .workfile_builder import WorkfileBuilderPlugin
 
 
 class WrapSettings(BaseSettingsModel):
     """Wrap Project Settings."""
 
-    templated_workfile_build: TemplatedWorkfileBuildModel = Field(
-        default_factory=TemplatedWorkfileBuildModel,
-        title="Templated Workfile Build Settings"
+    workfile_builder: WorkfileBuilderPlugin = Field(
+        default_factory=WorkfileBuilderPlugin,
+        title="Workfile Builder"
     )
 
 
