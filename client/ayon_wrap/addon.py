@@ -10,3 +10,6 @@ class WrapAddon(OpenPypeModule, IHostAddon):
 
     def initialize(self, module_settings):
         self.enabled = True
+
+    def get_workfile_extensions(self):
+        return [".wrap"]
