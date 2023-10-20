@@ -1,5 +1,3 @@
-#from typing import Type
-
 from ayon_server.addons import BaseServerAddon
 
 from .settings import WrapSettings, DEFAULT_WRAP_SETTING
@@ -7,7 +5,7 @@ from .version import __version__
 
 
 class WrpAddon(BaseServerAddon):
-    name = "Wrap"
+    name = "wrap"
     title = "Wrap"
     version = __version__
     settings_model = WrapSettings
