@@ -3,6 +3,7 @@ import shutil
 import json
 
 from openpype.lib.applications import PreLaunchHook, LaunchTypes
+from openpype.lib import ApplicationLaunchFailed
 from openpype.client import (
     get_subset_by_name,
     get_last_versions,
@@ -81,7 +82,7 @@ class ReplacePlaceholders(PreLaunchHook):
             shutil.copy(workfile_path, backup_path)
 
             with open(workfile_path, "w") as fp:
-                json.dump(content, fp)
+                json.dump(content, fp, indent=4)
 
             os.unlink(backup_path)
 
@@ -102,7 +103,7 @@ class ReplacePlaceholders(PreLaunchHook):
             (str) path to resolved representation file which should be used
                 instead of placeholder
         Raises
-            (ValueError) if path cannot be resolved (cannot find product,
+            (ApplicationLaunchFailed) if path cannot be resolved (cannot find product,
                 version etc.)
 
         """
@@ -127,7 +128,7 @@ class ReplacePlaceholders(PreLaunchHook):
         repres = get_representations(project_name, version_ids=[version_id],
                                      representation_names=[ext])
         if not repres:
-            raise ValueError(f"Cannot find representations with "
+            raise ApplicationLaunchFailed(f"Cannot find representations with "
                              f"{ext} for product {product_name}.\n"
                              f"Cannot import them.")
         repre = list(repres)[0]
@@ -144,12 +145,12 @@ class ReplacePlaceholders(PreLaunchHook):
             try:
                 version_int = int(version_val)
             except:
-                raise ValueError(f"Couldn't convert value {version_val} to "
+                raise ApplicationLaunchFailed(f"Couldn't convert value {version_val} to "
                                  f"integer. Please fix it in {workfile_path}")
             version_doc = get_version_by_name(project_name, version_int,
                                               product_id)
         if not version_doc:
-            raise ValueError(f"Didn't find version "
+            raise ApplicationLaunchFailed(f"Didn't find version "
                              f"for product {product_name}.\n")
         version_id = version_doc["_id"]
         return version_id
@@ -160,7 +161,7 @@ class ReplacePlaceholders(PreLaunchHook):
             project_name, product_name, asset_doc["_id"], fields=["_id"]
         )
         if not product:
-            raise ValueError(f"Couldn't find {product_name} for "
+            raise ApplicationLaunchFailed(f"Couldn't find {product_name} for "
                              "{asset_doc[\"name\"]}")
         product_id = product["_id"]
         return product_id
