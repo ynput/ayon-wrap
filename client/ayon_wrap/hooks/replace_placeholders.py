@@ -1,6 +1,7 @@
 import os
 import shutil
 import json
+import re
 
 from openpype.lib.applications import PreLaunchHook, LaunchTypes
 from openpype.lib import ApplicationLaunchFailed
@@ -75,7 +76,10 @@ class ReplacePlaceholders(PreLaunchHook):
                 filled_value = self._fill_placeholder(placeholder,
                                                       workfile_path)
                 node["params"]["fileName"]["value"] = filled_value
-                node["params"]["fileName"]["AYON_ORIGINAL"] = placeholder
+                metadata = (f"AYON_ORIGINAL = \"{placeholder}\" "
+                            "  \"\"\" AYON METADATA please do not remove!! \"\"\"\n"  # noqa
+                           f"return {json.dumps(filled_value, ensure_ascii=True)}")   # noqa
+                node["params"]["fileName"]["expression"] = metadata
 
         if filled_value:
             backup_path = f"{workfile_path}.bck"
@@ -89,8 +93,12 @@ class ReplacePlaceholders(PreLaunchHook):
     def _get_placeholder(self, file_info):
         if file_info["value"].startswith("AYON"):
             return file_info["value"]
-        if file_info.get("AYON_ORIGINAL"):
-            return file_info["AYON_ORIGINAL"]
+        expression = file_info.get("expression")
+        if expression and "AYON_ORIGINAL" in expression:
+            pattern = r"AYON_ORIGINAL = \"([^\"]+)\""
+            match = re.search(pattern, expression)
+            if match:
+                return match.group(1)
         return None
 
     def _fill_placeholder(self, placeholder, workfile_path):
