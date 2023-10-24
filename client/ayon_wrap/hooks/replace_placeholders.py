@@ -63,16 +63,18 @@ class ReplacePlaceholders(PreLaunchHook):
             for node in content["nodes"].values():
                 if not node.get("params"):
                     continue
-                file_path = node["params"].get("fileName")
-                if not file_path:
+                file_path_doc = node["params"].get("fileName")
+                if not file_path_doc:
                     continue
 
-                if file_path["value"].startswith("AYON"):
-                    placeholder = file_path["value"]
-                    filled_value = self._fill_placeholder(placeholder,
-                                                          workfile_path)
-                    node["params"]["fileName"]["value"] = filled_value
-                    node["params"]["fileName"]["AYON_ORIGINAL"] = placeholder
+                placeholder = self._get_placeholder(file_path_doc)
+                if not placeholder:
+                    continue
+
+                filled_value = self._fill_placeholder(placeholder,
+                                                      workfile_path)
+                node["params"]["fileName"]["value"] = filled_value
+                node["params"]["fileName"]["AYON_ORIGINAL"] = placeholder
 
         if filled_value:
             backup_path = f"{workfile_path}.bck"
@@ -82,6 +84,13 @@ class ReplacePlaceholders(PreLaunchHook):
                 json.dump(content, fp)
 
             os.unlink(backup_path)
+
+    def _get_placeholder(self, file_info):
+        if file_info["value"].startswith("AYON"):
+            return file_info["value"]
+        if file_info.get("AYON_ORIGINAL"):
+            return file_info["AYON_ORIGINAL"]
+        return None
 
     def _fill_placeholder(self, placeholder, workfile_path):
         """Replaces placeholder with actual path to representation
