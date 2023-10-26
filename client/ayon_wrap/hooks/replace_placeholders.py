@@ -1,7 +1,6 @@
 import os
 import shutil
 import json
-import re
 
 from openpype.lib.applications import PreLaunchHook, LaunchTypes
 from openpype.lib import ApplicationLaunchFailed
@@ -59,12 +58,20 @@ class ReplacePlaceholders(PreLaunchHook):
     def _fill_placeholders(self, workfile_path):
         """Replaces placeholders in existing `workfile_path`.
 
+        Args:
+            workfile_path (str): real workfile in 'work' area that will be
+                opened, already copied from template
+
         Searches for PLACEHOLDER_PATTERN, tries to fill it with dynamic values
         and replaces it.
         """
-        filled_value = None
         with open(workfile_path, "r") as f:
             content = json.load(f)
+
+            orig_metadata = (content.get("metadata", {})
+                                    .get("AYON_NODE_METADATA", {}))
+
+            nodes_metadata = {}
             for node in content["nodes"].values():
                 if not node.get("params"):
                     continue
@@ -72,19 +79,33 @@ class ReplacePlaceholders(PreLaunchHook):
                 if not file_path_doc:
                     continue
 
-                placeholder = self._get_placeholder(file_path_doc)
+                stored_node_meta = orig_metadata.get(str(node["nodeId"]))
+                placeholder = self._get_placeholder(file_path_doc,
+                                                    stored_node_meta)
                 if not placeholder:
                     continue
 
                 filled_value = self._fill_placeholder(placeholder,
                                                       workfile_path)
                 node["params"]["fileName"]["value"] = filled_value
-                metadata = (f"AYON_ORIGINAL = \"{placeholder}\" "
-                            "  \"\"\" AYON METADATA please do not remove!! \"\"\"\n"  # noqa
-                           f"return {json.dumps(filled_value, ensure_ascii=True)}")   # noqa
-                node["params"]["fileName"]["expression"] = metadata
+                node_meta = {
+                    "type": "load",
+                    "value": placeholder
+                }
+                nodes_metadata[node["nodeId"]] = node_meta
 
-        if filled_value:
+            # keep untouched meta
+            for node_id, existing_node_meta in orig_metadata.items():
+                if existing_node_meta["type"] != "load":
+                    nodes_metadata[node_id] = existing_node_meta
+
+            if not nodes_metadata and not orig_metadata:
+                return
+
+            if not content.get("metadata"):
+                content["metadata"] = {}
+            content["metadata"]["AYON_NODE_METADATA"] = nodes_metadata
+
             backup_path = f"{workfile_path}.bck"
             shutil.copy(workfile_path, backup_path)
 
@@ -93,16 +114,16 @@ class ReplacePlaceholders(PreLaunchHook):
 
             os.unlink(backup_path)
 
-    def _get_placeholder(self, file_info):
+    def _get_placeholder(self, file_info, stored_node_meta):
+        """Gets placeholder from file path of node or stored metadata.
+
+        Node filepath has precedence as it could be changed by artist,
+        metadata might contain obsolete value.
+        """
         if file_info["value"].startswith("AYON"):
             return file_info["value"]
-        expression = file_info.get("expression")
-        if expression and "AYON_ORIGINAL" in expression:
-            pattern = r"AYON_ORIGINAL = \"([^\"]+)\""
-            match = re.search(pattern, expression)
-            if match:
-                return match.group(1)
-        return None
+        if stored_node_meta and stored_node_meta["type"] == "load":
+            return stored_node_meta["value"]
 
     def _fill_placeholder(self, placeholder, workfile_path):
         """Replaces placeholder with actual path to representation
@@ -114,8 +135,8 @@ class ReplacePlaceholders(PreLaunchHook):
             (str) path to resolved representation file which should be used
                 instead of placeholder
         Raises
-            (ApplicationLaunchFailed) if path cannot be resolved (cannot find product,
-                version etc.)
+            (ApplicationLaunchFailed) if path cannot be resolved (cannot find
+            product, version etc.)
 
         """
         token_values = dict(zip(self.PLACEHOLDER_VALUE_PATTERN.split("."),
