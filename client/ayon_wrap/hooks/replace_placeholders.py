@@ -3,7 +3,6 @@ import shutil
 import json
 import re
 
-from client import get_hero_version_by_subset_id
 from openpype.lib.applications import PreLaunchHook, LaunchTypes
 from openpype.lib import ApplicationLaunchFailed
 from openpype.client import (
@@ -11,6 +10,7 @@ from openpype.client import (
     get_last_versions,
     get_version_by_name,
     get_representations,
+    get_hero_version_by_subset_id,
     get_asset_by_name
 )
 
