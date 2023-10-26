@@ -27,11 +27,12 @@ class ReplacePlaceholders(PreLaunchHook):
     what product, version and representation should be loaded.
 
     Expected placeholder format is PLACEHOLDER_VALUE_PATTERN.
-    Currently implemented keys:
-        - product_name (eg. `modelMain`)
-        - version (eg `latest` OR 1 OR 2 ..)
-        - ext (eg. `abc`)
-    Current context asset is implied for now.
+    Implemented 'placeholder' in 'placeholder':
+        - asset_name - {currentAsset} or any asset_name
+        - version - {latest} or {hero} or any integer value
+        (AYON.{currentAsset}.modelMain.{latest}.abc
+         AYON.characterB.modelMain.{hero}.abc
+         AYON.{currentAsset}.modelMaoin.1.abc)
     """
 
     order = 25
@@ -153,10 +154,10 @@ class ReplacePlaceholders(PreLaunchHook):
 
     def _get_version(self, project_name, product_name, product_id,
                      version_val, workfile_path):
-        if version_val == "latest":
+        if version_val == "{latest}":
             versions = get_last_versions(project_name, [product_id])
             version_doc = versions[product_id]
-        elif version_val == "hero":
+        elif version_val == "{hero}":
             version_doc = get_hero_version_by_subset_id(project_name,
                                                         product_id)
         else:
@@ -175,7 +176,7 @@ class ReplacePlaceholders(PreLaunchHook):
 
     def _get_asset_id(self, project_name, asset_name):
         asset_doc = self.data["asset_doc"]
-        if asset_name == "currentAsset":
+        if asset_name == "{currentAsset}":
             return asset_doc["_id"]
 
         asset = get_asset_by_name(project_name, asset_name)
