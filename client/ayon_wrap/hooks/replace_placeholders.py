@@ -10,7 +10,8 @@ from openpype.client import (
     get_subset_by_name,
     get_last_versions,
     get_version_by_name,
-    get_representations
+    get_representations,
+    get_asset_by_name
 )
 
 from openpype.pipeline.load import get_representation_path_with_anatomy
@@ -39,7 +40,7 @@ class ReplacePlaceholders(PreLaunchHook):
 
     PLACEHOLDER_PATTERN = "\"value\": \"^AYON\.\".*$"
     # expected pattern of placeholder value
-    PLACEHOLDER_VALUE_PATTERN = "AYON.product_name.version.ext"
+    PLACEHOLDER_VALUE_PATTERN = "AYON.asset_name.product_name.version.ext"
 
     def execute(self):
         last_workfile_path = self.data.get("last_workfile_path")
@@ -120,8 +121,13 @@ class ReplacePlaceholders(PreLaunchHook):
                                 placeholder.split(".")))
 
         project_name = self.data["project_name"]
+
+        asset_name = token_values["asset_name"]
+        asset_id = self._get_asset_id(project_name, asset_name)
+
         product_name = token_values["product_name"]
-        product_id = self._get_product_id(project_name, product_name)
+        product_id = self._get_product_id(project_name, asset_id,
+                                          product_name)
 
         version_val = token_values["version"]
         version_id = self._get_version(project_name, product_name, product_id,
@@ -167,10 +173,21 @@ class ReplacePlaceholders(PreLaunchHook):
         version_id = version_doc["_id"]
         return version_id
 
-    def _get_product_id(self, project_name, product_name):
+    def _get_asset_id(self, project_name, asset_name):
         asset_doc = self.data["asset_doc"]
+        if asset_name == "currentAsset":
+            return asset_doc["_id"]
+
+        asset = get_asset_by_name(project_name, asset_name)
+        if not asset:
+            raise ApplicationLaunchFailed(f"Couldn't find {asset_name} in "
+                                          f"{project_name}")
+
+        return asset["_id"]
+
+    def _get_product_id(self, project_name, asset_id, product_name):
         product = get_subset_by_name(
-            project_name, product_name, asset_doc["_id"], fields=["_id"]
+            project_name, product_name, asset_id, fields=["_id"]
         )
         if not product:
             raise ApplicationLaunchFailed(f"Couldn't find {product_name} for "
