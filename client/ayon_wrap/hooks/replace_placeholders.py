@@ -3,6 +3,7 @@ import shutil
 import json
 import re
 
+from client import get_hero_version_by_subset_id
 from openpype.lib.applications import PreLaunchHook, LaunchTypes
 from openpype.lib import ApplicationLaunchFailed
 from openpype.client import (
@@ -149,6 +150,9 @@ class ReplacePlaceholders(PreLaunchHook):
         if version_val == "latest":
             versions = get_last_versions(project_name, [product_id])
             version_doc = versions[product_id]
+        elif version_val == "hero":
+            version_doc = get_hero_version_by_subset_id(project_name,
+                                                        product_id)
         else:
             try:
                 version_int = int(version_val)
