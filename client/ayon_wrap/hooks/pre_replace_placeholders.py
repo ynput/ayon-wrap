@@ -14,7 +14,9 @@ from openpype.client import (
 )
 
 from openpype.pipeline.load import get_representation_path_with_anatomy
-from openpype.pipeline import Anatomy
+from openpype.pipeline import Anatomy, AVALON_CONTAINER_ID
+
+from ayon_wrap import api
 
 
 class ReplacePlaceholders(PreLaunchHook):
@@ -71,7 +73,10 @@ class ReplacePlaceholders(PreLaunchHook):
             orig_metadata = (content.get("metadata", {})
                                     .get("AYON_NODE_METADATA", {}))
 
-            nodes_metadata = {}
+            containers = []
+            stored_containers = {item["nodeId"]: item
+                                 for item in orig_metadata
+                                 if item.get("nodeId")}
             for node in content["nodes"].values():
                 if not node.get("params"):
                     continue
@@ -79,32 +84,42 @@ class ReplacePlaceholders(PreLaunchHook):
                 if not file_path_doc:
                     continue
 
-                stored_node_meta = orig_metadata.get(str(node["nodeId"]))
+                stored_node_meta = stored_containers.get(node["nodeId"])
                 placeholder = self._get_placeholder(file_path_doc,
                                                     stored_node_meta)
                 if not placeholder:
                     continue
 
-                filled_value = self._fill_placeholder(placeholder,
-                                                      workfile_path)
+                repre, filled_value = self._fill_placeholder(placeholder,
+                                                             workfile_path)
                 node["params"]["fileName"]["value"] = filled_value
-                node_meta = {
-                    "type": "load",
-                    "value": placeholder
+                data = {
+                    "original_value": placeholder,
+                    "nodeId": node["nodeId"]
                 }
-                nodes_metadata[node["nodeId"]] = node_meta
+                context = self.data
+                context["representation"] = repre
+                containers.append(
+                    api.containerise(
+                        name=os.path.basename(filled_value),
+                        namespace=node["nodeType"],
+                        loader="loadFile",
+                        context=context,
+                        data=data
+                    )
+                )
 
             # keep untouched meta
-            for node_id, existing_node_meta in orig_metadata.items():
-                if existing_node_meta["type"] != "load":
-                    nodes_metadata[node_id] = existing_node_meta
+            for existing_node_meta in orig_metadata:
+                if existing_node_meta["id"] != AVALON_CONTAINER_ID:
+                    containers.append(existing_node_meta)
 
-            if not nodes_metadata and not orig_metadata:
+            if not containers and not orig_metadata:
                 return
 
             if not content.get("metadata"):
                 content["metadata"] = {}
-            content["metadata"]["AYON_NODE_METADATA"] = nodes_metadata
+            content["metadata"]["AYON_NODE_METADATA"] = containers
 
             backup_path = f"{workfile_path}.bck"
             shutil.copy(workfile_path, backup_path)
@@ -122,8 +137,8 @@ class ReplacePlaceholders(PreLaunchHook):
         """
         if file_info["value"].startswith("AYON"):
             return file_info["value"]
-        if stored_node_meta and stored_node_meta["type"] == "load":
-            return stored_node_meta["value"]
+        if stored_node_meta and stored_node_meta["id"] == AVALON_CONTAINER_ID:
+            return stored_node_meta["original_value"]
 
     def _fill_placeholder(self, placeholder, workfile_path):
         """Replaces placeholder with actual path to representation
@@ -132,7 +147,7 @@ class ReplacePlaceholders(PreLaunchHook):
             placeholder (str): in format self.PLACEHOLDER_VALUE_PATTERN
             workfile_path (str): absolute path to opened workfile
         Returns:
-            (str) path to resolved representation file which should be used
+            (dict, str) path to resolved representation file which should be used
                 instead of placeholder
         Raises
             (ApplicationLaunchFailed) if path cannot be resolved (cannot find
@@ -156,12 +171,13 @@ class ReplacePlaceholders(PreLaunchHook):
                                        version_val, workfile_path)
 
         ext = token_values["ext"]
-        repre_path = self._get_repre_path(project_name, product_name, ext,
-                                          version_id)
+        repre, repre_path = self._get_repre_and_path(project_name,
+                                                     product_name,
+                                                     ext, version_id)
 
-        return repre_path
+        return repre, repre_path
 
-    def _get_repre_path(self, project_name, product_name, ext, version_id):
+    def _get_repre_and_path(self, project_name, product_name, ext, version_id):
         repres = get_representations(project_name, version_ids=[version_id],
                                      representation_names=[ext])
         if not repres:
@@ -170,8 +186,8 @@ class ReplacePlaceholders(PreLaunchHook):
                              f"Cannot import them.")
         repre = list(repres)[0]
 
-        return get_representation_path_with_anatomy(repre,
-                                                    Anatomy(project_name))
+        return repre, get_representation_path_with_anatomy(repre,
+            Anatomy(project_name))
 
     def _get_version(self, project_name, product_name, product_id,
                      version_val, workfile_path):

@@ -1,4 +1,5 @@
 import os
+import json
 
 import pyblish.api
 
@@ -6,24 +7,19 @@ from openpype.lib import Logger
 from openpype.pipeline import (
     register_loader_plugin_path,
     register_creator_plugin_path,
+    AVALON_CONTAINER_ID
 )
-import openpype.hosts.aftereffects
 
 from openpype.host import (
     HostBase,
-    IWorkfileHost,
     ILoadHost,
-    IPublishHost
 )
-
+from ayon_wrap import WRAP_HOST_DIR
 
 log = Logger.get_logger(__name__)
 
 
-HOST_DIR = os.path.dirname(
-    os.path.abspath(openpype.hosts.aftereffects.__file__)
-)
-PLUGINS_DIR = os.path.join(HOST_DIR, "plugins")
+PLUGINS_DIR = os.path.join(WRAP_HOST_DIR, "plugins")
 PUBLISH_PATH = os.path.join(PLUGINS_DIR, "publish")
 LOAD_PATH = os.path.join(PLUGINS_DIR, "load")
 CREATE_PATH = os.path.join(PLUGINS_DIR, "create")
@@ -32,8 +28,8 @@ CREATE_PATH = os.path.join(PLUGINS_DIR, "create")
 class WrapHost(HostBase, ILoadHost):
     name = "wrap"
 
-    def __init__(self):
-        self._stub = None
+    def __init__(self, workfile_path):
+        self._workfile_path = workfile_path
         super(WrapHost, self).__init__()
 
     def install(self):
@@ -47,26 +43,58 @@ class WrapHost(HostBase, ILoadHost):
         log.info(PUBLISH_PATH)
 
     def get_containers(self):
-        return self.list_instances()
+        metadata = []
+        with open(self._workfile_path, "r") as f:
+            content = json.load(f)
 
-    def get_context_data(self):
-        meta = self.stub.get_metadata()
-        for item in meta:
-            if item.get("id") == "publish_context":
-                item.pop("id")
-                return item
+            metadata = (content.get("metadata", {})
+                               .get("AYON_NODE_METADATA", {}).values())
 
-        return {}
+        data = {
+            "schema": "openpype:container-2.0",
+            "id": AVALON_CONTAINER_ID,
+            "name": "test_placeholder",
+            "namespace": "namespace",
+            "loader": str("loader"),
+            "representation": "XXXX",
+        }
+        return [data]
 
-    def list_instances(self):
-        """List all created instances from current workfile which
-        will be published.
 
-        Pulls from File > File Info
+def containerise(name,
+                 namespace,
+                 context,
+                 loader=None,
+                 data=None):
+    """
+    Containerisation enables a tracking of version, author and origin
+    for loaded assets.
 
-        For SubsetManager
+    Creates dictionary payloads that gets saved into file metadata. Each
+    container contains of who loaded (loader) and members (single or multiple
+    in case of background).
 
-        Returns:
-            (list) of dictionaries matching instances format
-        """
-        return []
+    Arguments:
+        name (str): Name of resulting assembly
+        namespace (str): Namespace under which to host container
+        comp (AEItem): Composition to containerise
+        context (dict): Asset information
+        loader (str, optional): Name of loader used to produce this container.
+
+    Returns:
+        container (str): Name of container assembly
+    """
+    data = {
+        "schema": "openpype:container-2.0",
+        "id": AVALON_CONTAINER_ID,
+        "name": name,
+        "namespace": namespace,
+        "loader": str(loader),
+        "representation": str(context["representation"]["_id"]),
+        "original_value": data["original_value"],
+        "nodeId": data["nodeId"]
+    }
+
+    return data
+
+

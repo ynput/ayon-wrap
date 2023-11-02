@@ -6,10 +6,12 @@ Anything that isn't defined here is INTERNAL and unreliable for external use.
 
 
 from .pipeline import (
-    Wraphost
+    WrapHost,
+    containerise
 )
 
 
 __all__ = [
-
+    "WrapHost",
+    "containerise"
 ]
