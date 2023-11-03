@@ -45,14 +45,14 @@ class PreLaunchHostHook(PreLaunchHook):
         if (
                 self.data.get("start_last_workfile")
                 and workfile_path
-                and os.path.exists(workfile_path)):
+                and os.path.exists(workfile_path)
+                and workfile_path not in new_launch_args):
             new_launch_args.append(workfile_path)
+            if workfile_path in remainders:
+                remainders.remove(workfile_path)
 
         # Append as whole list as these areguments should not be separated
         self.launch_context.launch_args.append(new_launch_args)
 
         if remainders:
             self.launch_context.launch_args.extend(remainders)
-
-        self.launch_context.kwargs = \
-            get_non_python_host_kwargs(self.launch_context.kwargs)

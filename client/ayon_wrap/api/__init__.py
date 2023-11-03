@@ -9,9 +9,13 @@ from .pipeline import (
     WrapHost,
     containerise
 )
+from .lib import fill_placeholder, get_token_and_values
 
 
 __all__ = [
     "WrapHost",
-    "containerise"
+    "containerise",
+
+    "fill_placeholder",
+    "get_token_and_values"
 ]

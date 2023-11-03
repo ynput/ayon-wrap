@@ -3,17 +3,6 @@ import shutil
 import json
 
 from openpype.lib.applications import PreLaunchHook, LaunchTypes
-from openpype.lib import ApplicationLaunchFailed
-from openpype.client import (
-    get_subset_by_name,
-    get_last_versions,
-    get_version_by_name,
-    get_representations,
-    get_hero_version_by_subset_id,
-    get_asset_by_name
-)
-
-from openpype.pipeline.load import get_representation_path_with_anatomy
 from openpype.pipeline import Anatomy, AVALON_CONTAINER_ID
 
 from ayon_wrap import api
@@ -41,8 +30,6 @@ class ReplacePlaceholders(PreLaunchHook):
     launch_types = {LaunchTypes.local}
 
     PLACEHOLDER_PATTERN = "\"value\": \"^AYON\.\".*$"
-    # expected pattern of placeholder value
-    PLACEHOLDER_VALUE_PATTERN = "AYON.asset_name.product_name.version.ext"
 
     def execute(self):
         last_workfile_path = self.data.get("last_workfile_path")
@@ -90,8 +77,9 @@ class ReplacePlaceholders(PreLaunchHook):
                 if not placeholder:
                     continue
 
-                repre, filled_value = self._fill_placeholder(placeholder,
-                                                             workfile_path)
+                repre, filled_value = api.fill_placeholder(placeholder,
+                                                           workfile_path,
+                                                           self.data)
                 node["params"]["fileName"]["value"] = filled_value
                 data = {
                     "original_value": placeholder,
@@ -102,8 +90,8 @@ class ReplacePlaceholders(PreLaunchHook):
                 containers.append(
                     api.containerise(
                         name=os.path.basename(filled_value),
-                        namespace=node["nodeType"],
-                        loader="loadFile",
+                        namespace=workfile_path,
+                        loader="FileLoader",
                         context=context,
                         data=data
                     )
@@ -139,97 +127,3 @@ class ReplacePlaceholders(PreLaunchHook):
             return file_info["value"]
         if stored_node_meta and stored_node_meta["id"] == AVALON_CONTAINER_ID:
             return stored_node_meta["original_value"]
-
-    def _fill_placeholder(self, placeholder, workfile_path):
-        """Replaces placeholder with actual path to representation
-
-        Args:
-            placeholder (str): in format self.PLACEHOLDER_VALUE_PATTERN
-            workfile_path (str): absolute path to opened workfile
-        Returns:
-            (dict, str) path to resolved representation file which should be used
-                instead of placeholder
-        Raises
-            (ApplicationLaunchFailed) if path cannot be resolved (cannot find
-            product, version etc.)
-
-        """
-        token_values = dict(zip(self.PLACEHOLDER_VALUE_PATTERN.split("."),
-                                placeholder.split(".")))
-
-        project_name = self.data["project_name"]
-
-        asset_name = token_values["asset_name"]
-        asset_id = self._get_asset_id(project_name, asset_name)
-
-        product_name = token_values["product_name"]
-        product_id = self._get_product_id(project_name, asset_id,
-                                          product_name)
-
-        version_val = token_values["version"]
-        version_id = self._get_version(project_name, product_name, product_id,
-                                       version_val, workfile_path)
-
-        ext = token_values["ext"]
-        repre, repre_path = self._get_repre_and_path(project_name,
-                                                     product_name,
-                                                     ext, version_id)
-
-        return repre, repre_path
-
-    def _get_repre_and_path(self, project_name, product_name, ext, version_id):
-        repres = get_representations(project_name, version_ids=[version_id],
-                                     representation_names=[ext])
-        if not repres:
-            raise ApplicationLaunchFailed(f"Cannot find representations with "
-                             f"{ext} for product {product_name}.\n"
-                             f"Cannot import them.")
-        repre = list(repres)[0]
-
-        return repre, get_representation_path_with_anatomy(repre,
-            Anatomy(project_name))
-
-    def _get_version(self, project_name, product_name, product_id,
-                     version_val, workfile_path):
-        if version_val == "{latest}":
-            versions = get_last_versions(project_name, [product_id])
-            version_doc = versions[product_id]
-        elif version_val == "{hero}":
-            version_doc = get_hero_version_by_subset_id(project_name,
-                                                        product_id)
-        else:
-            try:
-                version_int = int(version_val)
-            except:
-                raise ApplicationLaunchFailed(f"Couldn't convert value {version_val} to "
-                                 f"integer. Please fix it in {workfile_path}")
-            version_doc = get_version_by_name(project_name, version_int,
-                                              product_id)
-        if not version_doc:
-            raise ApplicationLaunchFailed(f"Didn't find version "
-                             f"for product {product_name}.\n")
-        version_id = version_doc["_id"]
-        return version_id
-
-    def _get_asset_id(self, project_name, asset_name):
-        asset_doc = self.data["asset_doc"]
-        if asset_name == "{currentAsset}":
-            return asset_doc["_id"]
-
-        asset = get_asset_by_name(project_name, asset_name)
-        if not asset:
-            raise ApplicationLaunchFailed(f"Couldn't find {asset_name} in "
-                                          f"{project_name}")
-
-        return asset["_id"]
-
-    def _get_product_id(self, project_name, asset_id, product_name):
-        product = get_subset_by_name(
-            project_name, product_name, asset_id, fields=["_id"]
-        )
-        if not product:
-            raise ApplicationLaunchFailed(f"Couldn't find {product_name} for "
-                             "{asset_doc[\"name\"]}")
-        product_id = product["_id"]
-        return product_id
-

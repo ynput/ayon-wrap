@@ -1,21 +1,13 @@
 import os
 import sys
-import subprocess
-import collections
 import logging
-import asyncio
-import functools
 import traceback
 
-
-from qtpy import QtCore
-
-from openpype.lib import Logger
-from openpype.tests.lib import is_in_tests
-from openpype.pipeline import install_host, legacy_io
-from openpype.modules import ModulesManager
+from openpype.pipeline import install_host
 from openpype.tools.utils import host_tools, get_openpype_qt_app
+from openpype.lib import get_openpype_execute_args, run_detached_process
 
+from ayon_wrap.api import WrapHost
 
 
 log = logging.getLogger(__name__)
@@ -26,23 +18,23 @@ def safe_excepthook(*args):
     traceback.print_exception(*args)
 
 
-def main(*subprocess_args):
+def main(subprocess_args):
     """Main entrypoint to Wrap launching, called from pre hook."""
     log.debug("launch_main")
     sys.excepthook = safe_excepthook
-    sys.path.insert(0, "C:/test_ayon/ayon-wrap/client/ayon_wrap")
-    import ayon_wrap
 
-    host = ayon_wrap.api.WrapHost()
+    subprocess_args.pop(0)  # remove launch_logic
+
+    host = WrapHost(subprocess_args[-1])
     install_host(host)
 
     os.environ["OPENPYPE_LOG_NO_COLORS"] = "False"
     app = get_openpype_qt_app()
-    app.setQuitOnLastWindowClosed(False)
 
-    host_tools.show_tool_by_name("workfiles", save=True)
+    host_tools.show_tool_by_name("sceneinventory")
 
-    sys.exit(app.exec_())
+    app.exec_()
+    run_detached_process(subprocess_args)
 
 
 if __name__ == "__main__":

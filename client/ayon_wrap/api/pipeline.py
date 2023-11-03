@@ -43,22 +43,28 @@ class WrapHost(HostBase, ILoadHost):
         log.info(PUBLISH_PATH)
 
     def get_containers(self):
-        metadata = []
+        """Get list of loaded containers.
+
+        Containers are created by filling prepared placeholders with publish
+        path of chosen representation and storing this metadata into the
+        workfile.
+
+        Returns:
+            (list of dict with schema similar to "openpype:container-2.0" -
+             "nodeId" added to point to node in Wrap)
+        """
         with open(self._workfile_path, "r") as f:
             content = json.load(f)
 
             metadata = (content.get("metadata", {})
-                               .get("AYON_NODE_METADATA", {}).values())
+                               .get("AYON_NODE_METADATA", []))
 
-        data = {
-            "schema": "openpype:container-2.0",
-            "id": AVALON_CONTAINER_ID,
-            "name": "test_placeholder",
-            "namespace": "namespace",
-            "loader": str("loader"),
-            "representation": "XXXX",
-        }
-        return [data]
+        containers = []
+        for item in metadata:
+            if item["id"] == AVALON_CONTAINER_ID:
+                containers.append(item)
+
+        return containers
 
 
 def containerise(name,
