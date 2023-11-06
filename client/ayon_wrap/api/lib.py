@@ -1,3 +1,5 @@
+import collections
+
 from openpype.lib import ApplicationLaunchFailed
 from openpype.client import (
     get_subset_by_name,
@@ -117,3 +119,33 @@ def _get_product_id(project_name, asset_id, product_name):
                                       "{asset_doc[\"name\"]}")
     product_id = product["_id"]
     return product_id
+
+
+def find_variant_key(application_manager, host):
+    """Searches for latest installed variant for 'host'
+
+        Args:
+            application_manager (ApplicationManager)
+            host (str)
+        Returns
+            (string) (optional)
+        Raises:
+            (ValueError) if no variant found
+    """
+    app_group = application_manager.app_groups.get(host)
+    if not app_group or not app_group.enabled:
+        raise ValueError("No application {} configured".format(host))
+
+    found_variant_key = None
+    # finds most up-to-date variant if any installed
+    sorted_variants = collections.OrderedDict(
+        sorted(app_group.variants.items()))
+    for variant_key, variant in sorted_variants.items():
+        for executable in variant.executables:
+            if executable.exists():
+                found_variant_key = variant_key
+
+    if not found_variant_key:
+        raise ValueError("No executable for {} found".format(host))
+
+    return found_variant_key
