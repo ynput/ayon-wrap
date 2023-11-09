@@ -64,7 +64,7 @@ class ReplacePlaceholders(PreLaunchHook):
             stored_containers = {item["nodeId"]: item
                                  for item in orig_metadata
                                  if item.get("nodeId")}
-            for node in content["nodes"].values():
+            for node_name, node in content["nodes"].items():
                 if not node.get("params"):
                     continue
                 file_path_doc = node["params"].get("fileName")
@@ -83,7 +83,8 @@ class ReplacePlaceholders(PreLaunchHook):
                 node["params"]["fileName"]["value"] = filled_value
                 data = {
                     "original_value": placeholder,
-                    "nodeId": node["nodeId"]
+                    "nodeId": node["nodeId"],
+                    "node_name": node_name
                 }
                 context = self.data
                 context["representation"] = repre

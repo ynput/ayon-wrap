@@ -83,9 +83,9 @@ def containerise(name,
     Arguments:
         name (str): Name of resulting assembly
         namespace (str): Namespace under which to host container
-        comp (AEItem): Composition to containerise
         context (dict): Asset information
         loader (str, optional): Name of loader used to produce this container.
+        data (dict): additional data to store placeholder, nodeId and node_name
 
     Returns:
         container (str): Name of container assembly
@@ -98,7 +98,8 @@ def containerise(name,
         "loader": str(loader),
         "representation": str(context["representation"]["_id"]),
         "original_value": data["original_value"],
-        "nodeId": data["nodeId"]
+        "nodeId": data["nodeId"],
+        "objectName": data["node_name"]
     }
 
     return data
