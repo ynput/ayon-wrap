@@ -5,7 +5,7 @@ import traceback
 
 from openpype.pipeline import install_host
 from openpype.tools.utils import host_tools, get_openpype_qt_app
-from openpype.lib import get_openpype_execute_args, run_detached_process
+from openpype.lib import run_detached_process
 
 from ayon_wrap.api import WrapHost
 
