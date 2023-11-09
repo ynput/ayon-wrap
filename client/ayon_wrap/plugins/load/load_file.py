@@ -100,13 +100,13 @@ class FileLoader(LoaderPlugin):
                     final_metadata.append(item)
                     continue
 
-        # TODO resolve if nodes should be completely removed
-        # final_nodes = {}
-        # for node_name, node in content["nodes"].items():
-        #     if node["nodeId"] == nodeId:
-        #         continue
-        #     final_nodes[node_name] = node
-        # content["nodes"] = final_nodes
+        final_nodes = {}
+        for node_name, node in content["nodes"].items():
+            if node["nodeId"] == nodeId:
+                node["params"]["fileName"]["value"] = ""
+
+            final_nodes[node_name] = node
+        content["nodes"] = final_nodes
 
         self._save_metadata(container["namespace"], content, final_metadata)
 
