@@ -65,38 +65,15 @@ class ReplacePlaceholders(PreLaunchHook):
                                  for item in orig_metadata
                                  if item.get("nodeId")}
             for node_name, node in content["nodes"].items():
-                if not node.get("params"):
-                    continue
-                file_path_doc = node["params"].get("fileName")
-                if not file_path_doc:
-                    continue
-
-                stored_node_meta = stored_containers.get(node["nodeId"])
-                placeholder = self._get_placeholder(file_path_doc,
-                                                    stored_node_meta)
-                if not placeholder:
-                    continue
-
-                repre, filled_value = api.fill_placeholder(placeholder,
-                                                           workfile_path,
-                                                           self.data)
-                node["params"]["fileName"]["value"] = filled_value
-                data = {
-                    "original_value": placeholder,
-                    "nodeId": node["nodeId"],
-                    "node_name": node_name
-                }
-                context = self.data
-                context["representation"] = repre
-                containers.append(
-                    api.containerise(
-                        name=os.path.basename(filled_value),
-                        namespace=workfile_path,
-                        loader="FileLoader",
-                        context=context,
-                        data=data
+                load_placeholder = self._get_load_placeholder(
+                    node, stored_containers)
+                if load_placeholder:
+                    containers.append(
+                        self._containerize_load_placeholder(node,
+                                                            node_name,
+                                                            load_placeholder,
+                                                            workfile_path)
                     )
-                )
 
             # keep untouched meta
             for existing_node_meta in orig_metadata:
@@ -117,6 +94,60 @@ class ReplacePlaceholders(PreLaunchHook):
                 json.dump(content, fp, indent=4)
 
             os.unlink(backup_path)
+
+    def _get_load_placeholder(self, node, stored_containers):
+        """Checks if node contains placeholder for loaded items.
+
+        It might be directly in file path of the node (for fresh template), or
+        resolved and saved in `stored_containers`.
+        Args:
+            node (dict): dictionary of node from Wrap file
+            stored_containers (dict): id -> container metadata for resolved
+                and saved loaded container.
+        Returns:
+            (str): placeholder in format `AYON.{currentAsset}.renderMain...`
+        """
+        if not node.get("params"):
+            return None
+        file_path_doc = node["params"].get("fileName")
+        if not file_path_doc:
+            return None
+
+        stored_node_meta = stored_containers.get(node["nodeId"])
+        return self._get_placeholder(file_path_doc, stored_node_meta)
+
+    def _containerize_load_placeholder(self, node, node_name,
+                                       placeholder, workfile_path):
+        """Resolves string placeholder with actual path to product.
+
+        Args:
+            node (dict): node dictionary from Wrap
+            node_name (str):
+            placeholder (str): placeholder in format
+                `AYON.{currentAsset}.renderMain...`
+            workfile_path (str): abs path to workfile to store into metadata
+        Returns:
+            (dict): AYON container metadata
+        """
+        repre, filled_value = api.fill_placeholder(placeholder,
+                                                   workfile_path,
+                                                   self.data)
+        node["params"]["fileName"]["value"] = filled_value
+        data = {
+            "original_value": placeholder,
+            "nodeId": node["nodeId"],
+            "node_name": node_name
+        }
+        context = self.data
+        context["representation"] = repre
+
+        return api.containerise(
+            name=os.path.basename(filled_value),
+            namespace=workfile_path,
+            loader="FileLoader",
+            context=context,
+            data=data
+        )
 
     def _get_placeholder(self, file_info, stored_node_meta):
         """Gets placeholder from file path of node or stored metadata.
