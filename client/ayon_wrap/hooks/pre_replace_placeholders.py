@@ -4,6 +4,7 @@ import json
 
 from openpype.lib.applications import PreLaunchHook, LaunchTypes
 from openpype.pipeline import Anatomy, AVALON_CONTAINER_ID
+from openpype.lib import get_version_from_path
 
 from ayon_wrap import api
 
@@ -75,6 +76,15 @@ class ReplacePlaceholders(PreLaunchHook):
                                                             workfile_path)
                     )
 
+                if node_name.startswith("AYON_"):
+                    file_path = node["params"]["fileName"]["value"]
+                    workfile_version = f"v{get_version_from_path(workfile_path)}"  # noqa
+
+                    file_path = self._update_version_placeholder(
+                        workfile_version, file_path)
+
+                    node["params"]["fileName"]["value"] = file_path
+
             # keep untouched meta
             for existing_node_meta in orig_metadata:
                 if existing_node_meta["id"] != AVALON_CONTAINER_ID:
@@ -94,6 +104,17 @@ class ReplacePlaceholders(PreLaunchHook):
                 json.dump(content, fp, indent=4)
 
             os.unlink(backup_path)
+
+    def _update_version_placeholder(self, workfile_version, file_path):
+        """Searches for {version} or 'v000' placeholder in output file path"""
+        version_from_path = get_version_from_path(file_path)
+        if version_from_path:
+            file_path = file_path.replace(version_from_path,
+                                          workfile_version)
+        if "{version}" in file_path:
+            file_path = file_path.replace("{version}",
+                                          workfile_version)
+        return file_path
 
     def _get_load_placeholder(self, node, stored_containers):
         """Checks if node contains placeholder for loaded items.
