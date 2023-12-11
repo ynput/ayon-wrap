@@ -36,11 +36,14 @@ def fill_placeholder(placeholder, workfile_path, context):
     project_name = context["project_name"]
 
     asset_name = token_and_values["asset_name"]
-    asset_id = _get_asset_id(project_name, asset_name, context)
+    asset = _get_asset(project_name, asset_name, context)
+    asset_id = asset["_id"]
 
     product_name = token_and_values["product_name"]
-    product_id = _get_product_id(project_name, asset_id,
-                                 product_name)
+    product_id = _get_product_id(project_name,
+                                 asset_id,
+                                 product_name,
+                                 asset["name"])
 
     version_val = token_and_values["version"]
     version_id = _get_version(project_name, product_name, product_id,
@@ -64,7 +67,7 @@ def _get_repre_and_path(project_name, product_name, ext, version_id):
                                  representation_names=[ext])
     if not repres:
         raise ApplicationLaunchFailed(f"Cannot find representations with "
-                                      f"{ext} for product {product_name}.\n"
+                                      f"'{ext}' for product '{product_name}'.\n"  # noqa
                                       f"Cannot import them.")
     repre = list(repres)[0]
 
@@ -85,38 +88,38 @@ def _get_version(project_name, product_name, product_id,
             version_int = int(version_val)
         except:
             raise ApplicationLaunchFailed(
-                f"Couldn't convert value {version_val} to "
-                f"integer. Please fix it in {workfile_path}")
+                f"Couldn't convert value '{version_val}' to "
+                f"integer. Please fix it in '{workfile_path}'")
         version_doc = get_version_by_name(project_name, version_int,
                                           product_id)
     if not version_doc:
         raise ApplicationLaunchFailed(f"Didn't find version "
-                                      f"for product {product_name}.\n")
+                                      f"for product '{product_name}.\n")
     version_id = version_doc["_id"]
     return version_id
 
 
-def _get_asset_id(project_name, asset_name, context):
+def _get_asset(project_name, asset_name, context):
     if asset_name == "{currentAsset}":
         if context.get("asset_doc"):
-            return context["asset_doc"]["_id"]
+            return context["asset_doc"]
         asset_name = context["asset_name"]
 
     asset = get_asset_by_name(project_name, asset_name)
     if not asset:
-        raise ApplicationLaunchFailed(f"Couldn't find {asset_name} in "
-                                      f"{project_name}")
+        raise ApplicationLaunchFailed(f"Couldn't find '{asset_name}' in "
+                                      f"'{project_name}'")
 
-    return asset["_id"]
+    return asset
 
 
-def _get_product_id(project_name, asset_id, product_name):
+def _get_product_id(project_name, asset_id, product_name, asset_name):
     product = get_subset_by_name(
         project_name, product_name, asset_id, fields=["_id"]
     )
     if not product:
-        raise ApplicationLaunchFailed(f"Couldn't find {product_name} for "
-                                      "{asset_doc[\"name\"]}")
+        raise ApplicationLaunchFailed(f"Couldn't find '{product_name}' for "
+                                      f"'{asset_name}'")
     product_id = product["_id"]
     return product_id
 
@@ -134,7 +137,7 @@ def find_variant_key(application_manager, host):
     """
     app_group = application_manager.app_groups.get(host)
     if not app_group or not app_group.enabled:
-        raise ValueError("No application {} configured".format(host))
+        raise ValueError("No application '{}' configured".format(host))
 
     found_variant_key = None
     # finds most up-to-date variant if any installed
@@ -146,6 +149,6 @@ def find_variant_key(application_manager, host):
                 found_variant_key = variant_key
 
     if not found_variant_key:
-        raise ValueError("No executable for {} found".format(host))
+        raise ValueError("No executable for '{}' found".format(host))
 
     return found_variant_key
