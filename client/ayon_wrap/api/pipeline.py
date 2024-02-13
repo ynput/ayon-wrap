@@ -3,7 +3,6 @@ import json
 
 import pyblish.api
 
-from openpype.lib import Logger
 from openpype.pipeline import (
     register_loader_plugin_path,
     register_creator_plugin_path,
@@ -15,8 +14,6 @@ from openpype.host import (
     ILoadHost,
 )
 from ayon_wrap import WRAP_HOST_DIR
-
-log = Logger.get_logger(__name__)
 
 
 PLUGINS_DIR = os.path.join(WRAP_HOST_DIR, "plugins")
@@ -40,7 +37,7 @@ class WrapHost(HostBase, ILoadHost):
 
         register_loader_plugin_path(LOAD_PATH)
         register_creator_plugin_path(CREATE_PATH)
-        log.info(PUBLISH_PATH)
+        self.log.debug(PUBLISH_PATH)
 
     def get_containers(self):
         """Get list of loaded containers.
