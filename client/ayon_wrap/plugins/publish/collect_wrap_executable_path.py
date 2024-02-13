@@ -1,6 +1,3 @@
-import os
-import re
-
 import pyblish.api
 from openpype.lib.applications import ApplicationManager
 from ayon_wrap.api.lib import find_variant_key
