@@ -1,9 +1,7 @@
 import os
 
-from openpype.lib import Logger
 from openpype.modules import AYONAddon, IHostAddon, IPluginPaths
 
-log = Logger.get_logger("Wrap")
 WRAP_HOST_DIR = os.path.dirname(os.path.abspath(__file__))
 CREATE_PATH = os.path.join(WRAP_HOST_DIR, "plugins",  "create")
 PUBLISH_PATH = os.path.join(WRAP_HOST_DIR, "plugins",  "publish")
