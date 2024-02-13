@@ -11,9 +11,6 @@ class WrapAddon(AYONAddon, IHostAddon, IPluginPaths):
     name = "wrap"
     host_name = "wrap"
 
-    def initialize(self, module_settings):
-        self.enabled = True
-
     def get_workfile_extensions(self):
         return [".wrap"]
 
