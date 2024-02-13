@@ -3,8 +3,8 @@ import os
 from openpype.modules import AYONAddon, IHostAddon, IPluginPaths
 
 WRAP_HOST_DIR = os.path.dirname(os.path.abspath(__file__))
-CREATE_PATH = os.path.join(WRAP_HOST_DIR, "plugins",  "create")
-PUBLISH_PATH = os.path.join(WRAP_HOST_DIR, "plugins",  "publish")
+CREATE_PATH = os.path.join(WRAP_HOST_DIR, "plugins", "create")
+PUBLISH_PATH = os.path.join(WRAP_HOST_DIR, "plugins", "publish")
 
 
 class WrapAddon(AYONAddon, IHostAddon, IPluginPaths):
