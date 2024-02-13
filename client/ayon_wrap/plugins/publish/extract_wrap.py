@@ -3,7 +3,6 @@ import subprocess
 import json
 
 from openpype.pipeline import publish
-from openpype.lib import run_detached_process
 
 
 class ExtractCompute(publish.Extractor):
