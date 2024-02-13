@@ -30,7 +30,7 @@ class WrapHost(HostBase, ILoadHost):
         super(WrapHost, self).__init__()
 
     def install(self):
-        print("Installing Pype config...")
+        print("Installing Wrap host...")
 
         pyblish.api.register_host("wrap")
         pyblish.api.register_plugin_path(PUBLISH_PATH)
