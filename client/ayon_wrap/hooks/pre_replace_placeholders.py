@@ -64,7 +64,7 @@ class ReplacePlaceholders(PreLaunchHook):
             containers = []
             stored_containers = {item["nodeId"]: item
                                  for item in orig_metadata
-                                 if item.get("nodeId")}
+                                 if item.get("nodeId") is not None}
             for node_name, node in content["nodes"].items():
                 load_placeholder = self._get_load_placeholder(
                     node, stored_containers)
@@ -76,7 +76,7 @@ class ReplacePlaceholders(PreLaunchHook):
                                                             workfile_path)
                     )
 
-                if node_name.startswith("AYON_"):
+                if node_name.startswith("AYON_"):  #TODO
                     file_path = node["params"]["fileName"]["value"]
                     workfile_version = f"v{get_version_from_path(workfile_path)}"  # noqa
 
