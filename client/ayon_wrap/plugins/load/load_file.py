@@ -1,7 +1,7 @@
 import json
 import os.path
 
-from openpype.pipeline import (
+from ayon_core.pipeline import (
     LoaderPlugin,
     AVALON_CONTAINER_ID,
     get_current_context

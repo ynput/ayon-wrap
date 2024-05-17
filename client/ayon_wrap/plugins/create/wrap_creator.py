@@ -2,13 +2,13 @@ import copy
 import os
 import json
 
-from openpype.lib import (
+from ayon_core.lib import (
     FileDef,
 )
-from openpype.pipeline import (
+from ayon_core.pipeline import (
     CreatedInstance,
 )
-from openpype.hosts.traypublisher.api.plugin import TrayPublishCreator
+from ayon_core.hosts.traypublisher.api.plugin import TrayPublishCreator
 
 
 class WrapWorkfileCreator(TrayPublishCreator):
@@ -23,7 +23,9 @@ class WrapWorkfileCreator(TrayPublishCreator):
     def get_instance_attr_defs(self):
         return []
 
-    def create(self, subset_name, instance_data, pre_create_data):
+    def create(
+        self, product_name: str, instance_data: dict, pre_create_data: dict
+    ):
         file_paths = pre_create_data.get("filepath")
         if not file_paths:
             return
@@ -45,7 +47,7 @@ class WrapWorkfileCreator(TrayPublishCreator):
                     creator_attributes["output_file_path"] = node["params"]["fileName"]["value"]  #noqa
                     instance_data["creator_attributes"] = creator_attributes
 
-                    new_instance = CreatedInstance(self.family, subset_name,
+                    new_instance = CreatedInstance(self.family, product_name,
                                                    instance_data, self)
                     self._store_new_instance(new_instance)
 
