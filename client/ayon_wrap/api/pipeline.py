@@ -3,13 +3,13 @@ import json
 
 import pyblish.api
 
-from openpype.pipeline import (
+from ayon_core.pipeline import (
     register_loader_plugin_path,
     register_creator_plugin_path,
     AVALON_CONTAINER_ID
 )
 
-from openpype.host import (
+from ayon_core.host import (
     HostBase,
     ILoadHost,
 )
@@ -93,7 +93,7 @@ def containerise(name,
         "name": name,
         "namespace": namespace,
         "loader": str(loader),
-        "representation": str(context["representation"]["_id"]),
+        "representation": str(context["representation"]["id"]),
         "original_value": data["original_value"],
         "nodeId": data["nodeId"],
         "objectName": data["node_name"]

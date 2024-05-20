@@ -2,18 +2,18 @@ import copy
 import os
 import json
 
-from openpype.lib import (
+from ayon_core.lib import (
     FileDef,
 )
-from openpype.pipeline import (
+from ayon_core.pipeline import (
     CreatedInstance,
 )
-from openpype.hosts.traypublisher.api.plugin import TrayPublishCreator
+from ayon_core.hosts.traypublisher.api.plugin import TrayPublishCreator
 
 
 class WrapWorkfileCreator(TrayPublishCreator):
     identifier = "Wrap"
-    family = "wrap"
+    product_type = "wrap"
 
     default_variant = "Main"
     extensions = ["wrap"]
@@ -23,7 +23,9 @@ class WrapWorkfileCreator(TrayPublishCreator):
     def get_instance_attr_defs(self):
         return []
 
-    def create(self, subset_name, instance_data, pre_create_data):
+    def create(
+        self, product_name: str, instance_data: dict, pre_create_data: dict
+    ):
         file_paths = pre_create_data.get("filepath")
         if not file_paths:
             return
@@ -42,11 +44,17 @@ class WrapWorkfileCreator(TrayPublishCreator):
                         continue
 
                     creator_attributes["nodeId"] = node["nodeId"]
-                    creator_attributes["output_file_path"] = node["params"]["fileName"]["value"]  #noqa
+                    creator_attributes["output_file_path"] = (node["params"]
+                                                                  ["fileName"]
+                                                                  ["value"])
                     instance_data["creator_attributes"] = creator_attributes
 
-                    new_instance = CreatedInstance(self.family, subset_name,
-                                                   instance_data, self)
+                    new_instance = CreatedInstance(
+                        self.product_type,
+                        product_name,
+                        instance_data,
+                        self
+                    )
                     self._store_new_instance(new_instance)
 
     def get_pre_create_attr_defs(self):
@@ -62,9 +70,12 @@ class WrapWorkfileCreator(TrayPublishCreator):
             )
         ]
 
-
     def get_detail_description(self):
-        return """# Create instances from Wrap Save nodes"""
+        return """# Create instances from Wrap Save nodes
+        
+        Looks for node types configured in `self.output_node_types` and for 
+        each of them it created an instance.
+        """
 
     def get_icon(self):
         return "fa.file"

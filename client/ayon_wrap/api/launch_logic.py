@@ -3,9 +3,9 @@ import sys
 import logging
 import traceback
 
-from openpype.pipeline import install_host
-from openpype.tools.utils import host_tools, get_openpype_qt_app
-from openpype.lib import run_detached_process
+from ayon_core.pipeline import install_host
+from ayon_core.tools.utils import host_tools, get_ayon_qt_app
+from ayon_core.lib.execute import run_detached_process
 
 from ayon_wrap.api import WrapHost
 
@@ -29,7 +29,7 @@ def main(subprocess_args):
     install_host(host)
 
     os.environ["OPENPYPE_LOG_NO_COLORS"] = "False"
-    app = get_openpype_qt_app()
+    app = get_ayon_qt_app()
 
     host_tools.show_tool_by_name("sceneinventory")
 

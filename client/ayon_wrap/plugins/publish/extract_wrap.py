@@ -2,7 +2,7 @@ import os
 import subprocess
 import json
 
-from openpype.pipeline import publish
+from ayon_core.pipeline import publish
 
 
 class ExtractCompute(publish.Extractor):

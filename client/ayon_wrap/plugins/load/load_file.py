@@ -1,7 +1,7 @@
 import json
 import os.path
 
-from openpype.pipeline import (
+from ayon_core.pipeline import (
     LoaderPlugin,
     AVALON_CONTAINER_ID,
     get_current_context
@@ -53,7 +53,7 @@ class FileLoader(LoaderPlugin):
                 repre, filled_value = fill_placeholder(updated,
                                                        container["namespace"],
                                                        context)
-                item["representation"] = repre["_id"]
+                item["representation"] = repre["id"]
                 item["original_value"] = updated
                 item["name"] = os.path.basename(filled_value)
                 item["version"] = repre["context"]["version"]
