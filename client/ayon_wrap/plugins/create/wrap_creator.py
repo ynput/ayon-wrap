@@ -44,7 +44,9 @@ class WrapWorkfileCreator(TrayPublishCreator):
                         continue
 
                     creator_attributes["nodeId"] = node["nodeId"]
-                    creator_attributes["output_file_path"] = node["params"]["fileName"]["value"]  #noqa
+                    creator_attributes["output_file_path"] = (node["params"]
+                                                                  ["fileName"]
+                                                                  ["value"])
                     instance_data["creator_attributes"] = creator_attributes
 
                     new_instance = CreatedInstance(
