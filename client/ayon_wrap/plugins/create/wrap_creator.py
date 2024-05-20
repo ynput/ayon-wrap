@@ -13,7 +13,7 @@ from ayon_core.hosts.traypublisher.api.plugin import TrayPublishCreator
 
 class WrapWorkfileCreator(TrayPublishCreator):
     identifier = "Wrap"
-    family = "wrap"
+    product_type = "wrap"
 
     default_variant = "Main"
     extensions = ["wrap"]
@@ -47,8 +47,12 @@ class WrapWorkfileCreator(TrayPublishCreator):
                     creator_attributes["output_file_path"] = node["params"]["fileName"]["value"]  #noqa
                     instance_data["creator_attributes"] = creator_attributes
 
-                    new_instance = CreatedInstance(self.family, product_name,
-                                                   instance_data, self)
+                    new_instance = CreatedInstance(
+                        self.product_type,
+                        product_name,
+                        instance_data,
+                        self
+                    )
                     self._store_new_instance(new_instance)
 
     def get_pre_create_attr_defs(self):
@@ -69,7 +73,3 @@ class WrapWorkfileCreator(TrayPublishCreator):
 
     def get_icon(self):
         return "fa.file"
-
-    @property
-    def product_type(self):
-        return self.family
