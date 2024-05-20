@@ -44,7 +44,7 @@ def fill_placeholder(placeholder, workfile_path, context):
         project_name,
         folder_id,
         product_name,
-        folder_entity["name"]
+        folder_entity["path"]
     )
 
     version_val = token_and_values["version"]
@@ -123,13 +123,13 @@ def _get_folder_entity(project_name, folder_token, context):
     return folder_entity
 
 
-def _get_product_id(project_name, folder_id, product_name, folder_name):
+def _get_product_id(project_name, folder_id, product_name, folder_path):
     product_ent = get_product_by_name(
         project_name, product_name, folder_id
     )
     if not product_ent:
         raise ApplicationLaunchFailed(f"Couldn't find '{product_name}' for "
-                                      f"'{folder_name}'")
+                                      f"'{folder_path}'")
     product_id = product_ent["id"]
     return product_id
 
