@@ -44,7 +44,7 @@ def fill_placeholder(placeholder, workfile_path, context):
         project_name,
         folder_id,
         product_name,
-        folder_entity["name"]
+        folder_entity["path"]
     )
 
     version_val = token_and_values["version"]
