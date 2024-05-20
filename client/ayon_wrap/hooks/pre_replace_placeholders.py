@@ -107,13 +107,15 @@ class ReplacePlaceholders(PreLaunchHook):
 
     def _update_version_placeholder(self, workfile_version, file_path):
         """Searches for {version} or 'v000' placeholder in output file path"""
-        version_from_path = get_version_from_path(file_path)
-        if version_from_path:
-            file_path = file_path.replace(version_from_path,
-                                          workfile_version)
         if "{version}" in file_path:
             file_path = file_path.replace("{version}",
                                           workfile_version)
+        else:
+            version_from_path = get_version_from_path(file_path)
+            if version_from_path:
+                file_path = file_path.replace(version_from_path,
+                                              workfile_version)
+
         return file_path
 
     def _get_load_placeholder(self, node, stored_containers):
