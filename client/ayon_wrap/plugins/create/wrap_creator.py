@@ -71,7 +71,11 @@ class WrapWorkfileCreator(TrayPublishCreator):
         ]
 
     def get_detail_description(self):
-        return """# Create instances from Wrap Save nodes"""
+        return """# Create instances from Wrap Save nodes
+        
+        Looks for node types configured in `self.output_node_types` and for 
+        each of them it created an instance.
+        """
 
     def get_icon(self):
         return "fa.file"
