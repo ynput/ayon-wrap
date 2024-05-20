@@ -36,9 +36,9 @@ class ExtractCompute(publish.Extractor):
         _, ext = os.path.splitext(os.path.basename(file_path))
         ext = ext[1:]
 
-        asset_doc = instance.data["assetEntity"]
-        frame_start = asset_doc["data"]["frameStart"]
-        frame_end = asset_doc["data"]["frameEnd"]
+        folder_entity = instance.data["folderEntity"]
+        frame_start = folder_entity["attrib"]["frameStart"]
+        frame_end = folder_entity["attrib"]["frameEnd"]
 
         self._update_timeline(workfile_path, frame_start, frame_end)
 
