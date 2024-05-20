@@ -123,7 +123,7 @@ def _get_folder_entity(project_name, folder_token, context):
     return folder_entity
 
 
-def _get_product_id(project_name, asset_id, product_name, asset_name):
+def _get_product_id(project_name, folder_id, product_name, folder_path):
     product_ent = get_product_by_name(
         project_name, product_name, asset_id
     )
