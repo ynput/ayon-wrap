@@ -93,7 +93,7 @@ def containerise(name,
         "name": name,
         "namespace": namespace,
         "loader": str(loader),
-        "representation": str(context["representation"]["_id"]),
+        "representation": str(context["representation"]["id"]),
         "original_value": data["original_value"],
         "nodeId": data["nodeId"],
         "objectName": data["node_name"]
