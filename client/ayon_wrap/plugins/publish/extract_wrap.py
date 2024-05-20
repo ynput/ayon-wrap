@@ -1,6 +1,7 @@
 import os
 import subprocess
 import json
+import re
 
 from ayon_core.pipeline import publish
 
@@ -20,6 +21,10 @@ class ExtractCompute(publish.Extractor):
         workfile_path = creator_attributes["workfile_path"]
 
         file_path = creator_attributes["output_file_path"]
+        if "$PROJECT_DIR" in file_path:
+            pattern = r"\$PROJECT_DIR(\\|/)"
+            file_path = re.sub(pattern, "", file_path)
+
         is_absolute = os.path.isabs(file_path)
         if is_absolute:
             staging_dir = os.path.dirname(file_path)
