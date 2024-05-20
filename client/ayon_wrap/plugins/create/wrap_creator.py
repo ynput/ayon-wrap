@@ -64,9 +64,12 @@ class WrapWorkfileCreator(TrayPublishCreator):
             )
         ]
 
-
     def get_detail_description(self):
         return """# Create instances from Wrap Save nodes"""
 
     def get_icon(self):
         return "fa.file"
+
+    @property
+    def product_type(self):
+        return self.family
