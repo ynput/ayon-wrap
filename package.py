@@ -1,6 +1,6 @@
 name = "wrap"
 title = "Wrap"
-version = "0.0.3"
+version = "0.0.3-dev.1"
 
 client_dir = "ayon_wrap"
 
