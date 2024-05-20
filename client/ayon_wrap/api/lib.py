@@ -123,13 +123,13 @@ def _get_folder_entity(project_name, folder_token, context):
     return folder_entity
 
 
-def _get_product_id(project_name, asset_id, product_name, asset_name):
+def _get_product_id(project_name, folder_id, product_name, folder_name):
     product_ent = get_product_by_name(
-        project_name, product_name, asset_id
+        project_name, product_name, folder_id
     )
     if not product_ent:
         raise ApplicationLaunchFailed(f"Couldn't find '{product_name}' for "
-                                      f"'{asset_name}'")
+                                      f"'{folder_name}'")
     product_id = product_ent["id"]
     return product_id
 
