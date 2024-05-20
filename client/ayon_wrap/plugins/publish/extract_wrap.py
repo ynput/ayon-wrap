@@ -7,7 +7,7 @@ from ayon_core.pipeline import publish
 
 
 class ExtractCompute(publish.Extractor):
-    """Render RenderQueue locally."""
+    """Prepare `wrap` representation and trigger Calculate for all savers."""
 
     order = publish.Extractor.order - 0.47
     label = "Extract Compute Nodes"
@@ -42,8 +42,8 @@ class ExtractCompute(publish.Extractor):
 
         self._update_timeline(workfile_path, frame_start, frame_end)
 
-        exit_code = self._call_compute(workfile_path, instance,
-                                       frame_start, frame_end)
+        exit_code = self._call_compute(
+            workfile_path, instance, frame_start, frame_end)
 
         if exit_code != 0:
             raise RuntimeError(f"Cannot compute {workfile_path}")
@@ -71,7 +71,7 @@ class ExtractCompute(publish.Extractor):
 
         instance.data["representations"] = representations
 
-        instance.context.data["currentFile"] = workfile_path  # TODO
+        instance.context.data["currentFile"] = workfile_path
 
     def _update_timeline(self, workfile_path, frame_start, frame_end):
         """Frame_start and frame_end must be inside of timeline values."""
@@ -90,7 +90,9 @@ class ExtractCompute(publish.Extractor):
         wrap_executable_path = instance.context.data["wrapExecutablePath"]
         wrap_executable_path = wrap_executable_path.replace("Wrap.",
                                                             "WrapCmd.")
-        subprocess_args = [wrap_executable_path, "compute", workfile_path,
+        subprocess_args = [wrap_executable_path,
+                           "compute",
+                           workfile_path,
                            "-s", str(frame_start),
                            "-e", str(frame_end)]
         self.log.debug(f"args::{subprocess_args}")
