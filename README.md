@@ -1,50 +1,50 @@
-# Addon template
-This is a boilerplate git repository for creating new ayon addons.
+# Wrap
+A Faceform Wrap is a topology transfer tool for creation of digital characters based on 3D scans of real actors or sculpts.
 
+As Wrap has no Python API its integration is a bit limited. It can now open predefined template workfile based on profiles. 
+These template workfiles could contain placeholders which will be textually replaced before starting and opening a workfile with Wrap.
 
-## Folder structure
-All addons must have server code which is located in `server` subfolder. Server side addon definition is entrypoint for each addon. Can define settings, frontend, custom endpoints, etc. Root by default contains `create_package.py` which is a helper script that prepares package structure for server. The script may be modified or expanded by needs of addon (e.g. when frontend needs to be build first). File with `version.py` is kept at the root and is copied to server and client code with script -> The reason is to make sure both parts contain same version.
+## Custom templates
+Configure `ayon+settings://wrap/workfile_builder/custom_templates` to add profiles to select particular `.wrap` template for a task.
 
-### Server content
-Default base of server addon is `__init__.py` file in root of repository which define addon for server. Most of addons have settings that's why `settings.py` is by default in the structure. Settings can be changed to folder/module when more than one file is needed.
+## Load placeholders
+Read nodes which should be controlled by AYON needs to contain `AYON.` prefix in `File name` property.
 
-#### Server frontend
-Addons may have their frontend. By default, server looks into `~/frontend/dist` for `index.html` and addon have to have specified scopes where the frontend should be showed (check documentation of `frontend_scopes` on server addon implementation for more information).
+Format of the placeholder:
+`AYON.FOLDER_PATH.PRODUCT_NAME.VERSION.EXTENSION`
 
-#### Private server files
-Root of addon may contain subfolder `private` where can be added files that are accessible via ayon server. Url schema is `{server url}/addons/{addon name}/{addon_version}/private/*`. By default it is place where client zip file is created (during package creation). The endpoint requires authorized user.
+Description:
 
-#### Public server files
-Public files works the same as private files but does not require authorized user. Subfolder name is `public`. Url schema is `{server url}/addons/{addon name}/{addon_version}/public/*`. Endpoint is helpful for images/icons or other static content.
+- AYON - hardcoded prefix denoting this is Ayon placeholder
+- FOLDER_PATH - points to folder
+    - could be encased with {} to denote it is dynamic value `{currentFolder}` - folder from context
+    - or any actual path of folder (`/characters/characterA`)
+- PRODUCT_NAME - value of product from folder (`modelMain`)
+- VERSION - value to select version
+     - encased in {} (`{latest}`, `{hero}`) points to version of current context
+     - any integer number points to specific version (`4`)
+- EXTENSION - extension of loaded representation (`png`)
 
-### Client content
-Addons that have code for desktop client application should create subfolder `client` where a client content is located. It is expected the directory has only one file or folder in it which is named the way how should be imported on a client side (e.g. `ayon_core`).
+## Launching of Wrap
 
+Regular artist opens Wrap ordinary via Launcher. Before Wrap is opened Scene Inventory tool will be shown to highlight which items 
+were loaded when placeholders got resolved. Artist can see version, if loaded version is not the latest, 
+it is highlighted by red color.
 
-### Example strucutre
-```
-├─ server
-│ ├─ frontend
-│ │ └─ dist
-│ │  └─ index.html
-│ │
-│ ├─ public
-│ │ └─ my_icon.png
-│ │
-│ ├─ private
-│ │ └─ kittens.png
-│ │
-│ ├─ __init__.py
-│ └─ settings.py
-│
-├─ client
-│ └─ openpype_core
-│   ├─ pipeline
-│   ├─ lib
-│   └─ ...
-│
-├─ create_package.py
-├─ README.md
-├─ LICENSE
-└─ version.py
-```
+## Publish
+As there is no Python API to run code of Ayon directly in Wrap application, publish process is semi-manual. 
+Artists must prepare workfile, save it and then publish it via Publisher: docs/artist_tools_publisher tool.
+
+There might be multiple write nodes inside of the workfile, but not all of them must be published via Ayon. 
+Publishable nodes must contain AYON_ prefix in their names. 
+Whole name has then format `AYON_PUBLISHED_PRODUCT_NAME` (eg.`AYON_wrapRenderMain` - 
+this will publish wrapRenderMain product of wrap family.
+
+Artist should open Publisher, select published context in left column, 
+drag&drop prepared workfile in the middle column and hit Create. 
+There should appear new instance in the right column, next step would be to hit Publish to start publishing process.
+
+## Build process and installation
+Run `create_package.py` and install addon via `Bundles` page.
+
+This addon doesn't require any external dependencies.
