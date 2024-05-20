@@ -129,7 +129,7 @@ def _get_product_id(project_name, folder_id, product_name, folder_path):
     )
     if not product_ent:
         raise ApplicationLaunchFailed(f"Couldn't find '{product_name}' for "
-                                      f"'{asset_name}'")
+                                      f"'{folder_path}'")
     product_id = product_ent["id"]
     return product_id
 
