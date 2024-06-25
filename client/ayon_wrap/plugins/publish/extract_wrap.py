@@ -1,12 +1,13 @@
 import os
 import subprocess
 import json
+import re
 
 from ayon_core.pipeline import publish
 
 
 class ExtractCompute(publish.Extractor):
-    """Render RenderQueue locally."""
+    """Prepare `wrap` representation and trigger Calculate for all savers."""
 
     order = publish.Extractor.order - 0.47
     label = "Extract Compute Nodes"
@@ -20,6 +21,10 @@ class ExtractCompute(publish.Extractor):
         workfile_path = creator_attributes["workfile_path"]
 
         file_path = creator_attributes["output_file_path"]
+        if "$PROJECT_DIR" in file_path:
+            pattern = r"\$PROJECT_DIR(\\|/)"
+            file_path = re.sub(pattern, "", file_path)
+
         is_absolute = os.path.isabs(file_path)
         if is_absolute:
             staging_dir = os.path.dirname(file_path)
@@ -31,14 +36,14 @@ class ExtractCompute(publish.Extractor):
         _, ext = os.path.splitext(os.path.basename(file_path))
         ext = ext[1:]
 
-        asset_doc = instance.data["assetEntity"]
-        frame_start = asset_doc["data"]["frameStart"]
-        frame_end = asset_doc["data"]["frameEnd"]
+        folder_entity = instance.data["folderEntity"]
+        frame_start = folder_entity["attrib"]["frameStart"]
+        frame_end = folder_entity["attrib"]["frameEnd"]
 
         self._update_timeline(workfile_path, frame_start, frame_end)
 
-        exit_code = self._call_compute(workfile_path, instance,
-                                       frame_start, frame_end)
+        exit_code = self._call_compute(
+            workfile_path, instance, frame_start, frame_end)
 
         if exit_code != 0:
             raise RuntimeError(f"Cannot compute {workfile_path}")
@@ -66,7 +71,7 @@ class ExtractCompute(publish.Extractor):
 
         instance.data["representations"] = representations
 
-        instance.context.data["currentFile"] = workfile_path  # TODO
+        instance.context.data["currentFile"] = workfile_path
 
     def _update_timeline(self, workfile_path, frame_start, frame_end):
         """Frame_start and frame_end must be inside of timeline values."""
@@ -85,7 +90,9 @@ class ExtractCompute(publish.Extractor):
         wrap_executable_path = instance.context.data["wrapExecutablePath"]
         wrap_executable_path = wrap_executable_path.replace("Wrap.",
                                                             "WrapCmd.")
-        subprocess_args = [wrap_executable_path, "compute", workfile_path,
+        subprocess_args = [wrap_executable_path,
+                           "compute",
+                           workfile_path,
                            "-s", str(frame_start),
                            "-e", str(frame_end)]
         self.log.debug(f"args::{subprocess_args}")

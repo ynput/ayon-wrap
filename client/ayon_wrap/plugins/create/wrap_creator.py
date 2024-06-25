@@ -8,7 +8,7 @@ from ayon_core.lib import (
 from ayon_core.pipeline import (
     CreatedInstance,
 )
-from ayon_core.hosts.traypublisher.api.plugin import TrayPublishCreator
+from ayon_traypublisher.api.plugin import TrayPublishCreator
 
 
 class WrapWorkfileCreator(TrayPublishCreator):
