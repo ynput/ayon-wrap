@@ -55,24 +55,9 @@ class WrapCreator(TrayPublishCreator):
                     if not node_name.startswith("AYON_"):
                         continue
 
-                    node_parts = node_name.split("_")
-                    if len(node_parts) != 3:
-                        raise CreatorError(
-                            f"'{node_name} doesn't match to "
-                            "expected write node format "
-                            "'AYON_productName_extension'"
-                        )
-                    product_name = node_parts[1]
-                    product_type = None
-                    for impl_product_type in self.implemented_product_types:
-                        if product_name.startswith(impl_product_type):
-                            product_type = impl_product_type
-                            break
-                    if not product_type:
-                        raise CreatorError(
-                            f"'{node_name} doesn't match to values from "
-                            f"'{self.implemented_product_types}'"
-                        )
+                    product_name = self._get_product_name(node_name)
+                    product_type = self._get_product_type(
+                        node_name, product_name)
 
                     wrap_instance_data["nodeId"] = node["nodeId"]
                     wrap_instance_data["nodeName"] = node_name
@@ -87,6 +72,43 @@ class WrapCreator(TrayPublishCreator):
                         product_name,
                         instance_data,
                     )
+
+    def _get_product_name(self, node_name):
+        """Parses node name by '_'
+
+        Raises:
+            (CreatorError) - if name doesn't match expected format
+        """
+        node_parts = node_name.split("_")
+        if len(node_parts) != 3:
+            raise CreatorError(
+                f"'{node_name} doesn't match to "
+                "expected write node format "
+                "'AYON_productName_extension'"
+            )
+        product_name = node_parts[1]
+        return product_name
+
+    def _get_product_type(self, node_name, product_name):
+        """Queries product type from list of implemented
+
+        Node name contains full product_name, which must be stripped to get
+        product_type.
+
+        Raises:
+            (CreatorError) - if name doesn't match expected format
+        """
+        product_type = None
+        for impl_product_type in self.implemented_product_types:
+            if product_name.startswith(impl_product_type):
+                product_type = impl_product_type
+                break
+        if not product_type:
+            raise CreatorError(
+                f"'{node_name} doesn't match to values from "
+                f"'{self.implemented_product_types}'"
+            )
+        return product_type
 
     def get_instance_attr_defs(self):
         return [
