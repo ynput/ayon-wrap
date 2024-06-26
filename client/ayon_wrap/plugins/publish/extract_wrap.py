@@ -14,21 +14,19 @@ class ExtractCompute(publish.Extractor):
     families = ["wrap"]
 
     def process(self, instance):
-        self.log.info(instance.data["creator_attributes"])
-        creator_attributes = instance.data["creator_attributes"]
+        workfile_path = instance.data["wrap"]["workfile_path"]
 
-        workfile_path = creator_attributes["workfile_path"]
-
-        file_path = creator_attributes["output_file_path"]
-        is_absolute = os.path.isabs(file_path)
+        output_file_path = instance.data["wrap"]["output_file_path"]
+        is_absolute = os.path.isabs(output_file_path)
         if is_absolute:
-            staging_dir = os.path.dirname(file_path)
+            staging_dir = os.path.dirname(output_file_path)
         else:
-            file_path = os.path.join(os.path.dirname(workfile_path), file_path)
-            staging_dir = os.path.dirname(file_path)
+            output_file_path = os.path.join(
+                os.path.dirname(workfile_path), output_file_path)
+            staging_dir = os.path.dirname(output_file_path)
 
         representations = []
-        _, ext = os.path.splitext(os.path.basename(file_path))
+        _, ext = os.path.splitext(os.path.basename(output_file_path))
         ext = ext[1:]
 
         asset_doc = instance.data["assetEntity"]
