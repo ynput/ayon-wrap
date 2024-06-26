@@ -9,21 +9,28 @@ from ayon_core.pipeline import (
     CreatedInstance,
     CreatorError
 )
-from ayon_traypublisher.api.plugin import TrayPublishCreator
+from ayon_traypublisher.api.plugin import (
+    TrayPublishCreator,
+    HiddenTrayPublishCreator
+)
 
 
-class WrapWorkfileCreator(TrayPublishCreator):
+class WrapCreator(TrayPublishCreator):
     """"Parses Wrap workfile, looks for all writer nodes names starting `AYON_`
 
     Expected format of write node name:
         `AYON_productName_extension` - eg `AYON_modelMain_abc`
+
+    Triggers separate creators inheriting from 'WrapProductBaseCreator' which
+    provides different icons and separation into product_types blocks.
     """
-    identifier = "Wrap"
+    host_name = "traypublisher"
+    identifier = "wrap"
+    product_type = None
+    label = "Wrap"
 
     default_variant = "Main"
     extensions = ["wrap"]
-
-    product_type = None
 
     implemented_product_types = [
         "model", "dataTransform", "dataPD", "render", "image"
@@ -73,13 +80,13 @@ class WrapWorkfileCreator(TrayPublishCreator):
                         node["params"]["fileName"]["value"])
                     instance_data["wrap"] = wrap_instance_data
 
-                    new_instance = CreatedInstance(
-                        product_type,
+                    creator_identifier = f"wrap_{product_type}"
+                    wrap_creator = self.create_context.creators[
+                        creator_identifier]
+                    _new_instance = wrap_creator.create(
                         product_name,
                         instance_data,
-                        self
                     )
-                    self._store_new_instance(new_instance)
 
     def get_instance_attr_defs(self):
         return [
@@ -120,3 +127,54 @@ class WrapWorkfileCreator(TrayPublishCreator):
 
     def get_icon(self):
         return "fa.file"
+
+
+class WrapProductBaseCreator(HiddenTrayPublishCreator):
+    """Wrapper class for separate product types implemented from Wrap."""
+    host_name = "traypublisher"
+
+    def create(self, product_name, instance_data):
+
+        # Create new instance
+        new_instance = CreatedInstance(
+            self.product_type, product_name, instance_data, self
+        )
+
+        self._store_new_instance(new_instance)
+
+        return new_instance
+
+
+class ModelWrapCreator(WrapProductBaseCreator):
+    identifier = "wrap_model"
+    product_type = "model"
+    label = "Wrap model"
+    icon = "cube"
+
+
+class DataTransformWrapCreator(WrapProductBaseCreator):
+    identifier = "wrap_dataTransform"
+    product_type = "dataTransform"
+    label = "Wrap dataTransform"
+    icon = "shuffle"
+
+
+class DataPDWrapCreator(WrapProductBaseCreator):
+    identifier = "wrap_dataPD"
+    product_type = "dataPD"
+    label = "Wrap dataPD"
+    icon = "calendar-week"
+
+
+class RenderCreator(WrapProductBaseCreator):
+    identifier = "wrap_render"
+    product_type = "render"
+    label = "Wrap render"
+    icon = "eye"
+
+
+class ImageCreator(WrapProductBaseCreator):
+    identifier = "wrap_image"
+    product_type = "image"
+    label = "Wrap image"
+    icon = "image"
