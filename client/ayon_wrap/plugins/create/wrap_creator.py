@@ -161,6 +161,7 @@ class WrapProductBaseCreator(HiddenTrayPublishCreator):
         new_instance = CreatedInstance(
             self.product_type, product_name, instance_data, self
         )
+        new_instance.data["families"] = ["wrap"]
 
         self._store_new_instance(new_instance)
 
