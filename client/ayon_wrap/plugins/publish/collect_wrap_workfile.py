@@ -11,7 +11,8 @@ class CollectWrapWorkfile(pyblish.api.InstancePlugin):
     label = "Collect Wrap Workfile"
     hosts = ["traypublisher"]
 
-    family = "workfile"
+    families = ["workfile"]
+
     def process(self, instance):
         is_wrap = is_wrap_instance(instance, self.log)
         if not is_wrap:
