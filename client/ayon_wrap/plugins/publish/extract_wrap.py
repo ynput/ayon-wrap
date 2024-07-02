@@ -84,10 +84,12 @@ class ExtractCompute(pyblish.api.ContextPlugin):
             }
 
             if another_instance is not None:
-                representations = another_instance.get("representations", [])
+                representations = another_instance.data.get(
+                    "representations", [])
                 instance = another_instance  # update existing instance
             else:
                 representations = instance.data.get("representations", [])
+                product_name_to_instance[product_name] = instance
 
             representations.append(repre_data)
             instance.data["representations"] = representations
