@@ -46,9 +46,9 @@ class WrapCreator(TrayPublishCreator):
         for file_info in file_paths:
             instance_data = copy.deepcopy(instance_data)
             file_name = file_info["filenames"][0]
-            filepath = os.path.join(file_info["directory"], file_name)
-            wrap_instance_data = {"workfile_path": filepath}
-            with open(filepath, "r") as fp:
+            workfile_path = os.path.join(file_info["directory"], file_name)
+            wrap_instance_data = {"workfile_path": workfile_path}
+            with open(workfile_path, "r") as fp:
                 content = json.load(fp)
 
                 for node_name, node in content["nodes"].items():
@@ -65,13 +65,29 @@ class WrapCreator(TrayPublishCreator):
                         node["params"]["fileName"]["value"])
                     instance_data["wrap"] = wrap_instance_data
 
-                    creator_identifier = f"wrap_{product_type}"
-                    wrap_creator = self.create_context.creators[
-                        creator_identifier]
-                    _new_instance = wrap_creator.create(
-                        product_name,
-                        instance_data,
-                    )
+                    self._create_instance(instance_data, product_name,
+                                          product_type)
+
+            instance_data = self._create_workfile_instance(
+                instance_data, workfile_path)
+
+    def _create_workfile_instance(self, instance_data, workfile_path):
+        instance_data = copy.deepcopy(instance_data)
+        instance_data["workfile_path"] = workfile_path
+        product_type = "workfile"
+        product_name = "workfileMain"
+        self._create_instance(instance_data, product_name,
+                              product_type)
+        return instance_data
+
+    def _create_instance(self, instance_data, product_name, product_type):
+        creator_identifier = f"wrap_{product_type}"
+        wrap_creator = self.create_context.creators[
+            creator_identifier]
+        _new_instance = wrap_creator.create(
+            product_name,
+            instance_data,
+        )
 
     def _get_product_name(self, node_name):
         """Parses node name by '_'
@@ -201,3 +217,10 @@ class ImageCreator(WrapProductBaseCreator):
     product_type = "image"
     label = "Wrap image"
     icon = "image"
+
+
+class WorkfileCreator(WrapProductBaseCreator):
+    identifier = "wrap_workfile"
+    product_type = "workfile"
+    label = "Wrap workfile"
+    icon = "fa5.file"

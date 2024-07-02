@@ -26,6 +26,9 @@ class ExtractCompute(pyblish.api.ContextPlugin):
             if not is_wrap:
                 return
 
+            if instance.data["family"] == "workfile":
+                continue
+
             workfile_path = instance.data["wrap"]["workfile_path"]
             workfile_dir = os.path.dirname(workfile_path)
             output_path = self._get_output_path(instance, workfile_dir)
