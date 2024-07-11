@@ -11,6 +11,7 @@ from ayon_api import (
 )
 from ayon_core.pipeline import Anatomy
 from ayon_core.pipeline.load import get_representation_path_with_anatomy
+from ayon_core.lib.profiles_filtering import filter_profiles
 
 # expected pattern of placeholder value
 PLACEHOLDER_VALUE_PATTERN = "AYON.folder_token.product_name.version.ext"
@@ -162,3 +163,24 @@ def find_variant_key(application_manager, host):
         raise ValueError("No executable for '{}' found".format(host))
 
     return found_variant_key
+
+
+def get_multiple_templates_profile(
+        project_settings, task_name, task_type, log=None):
+    """Returns configured profile for current context"""
+    wrap_settings = project_settings["wrap"]
+    multiple_templates_profiles = (
+        wrap_settings)["multiple_templates_per_tasks"]["profiles"]
+    if not multiple_templates_profiles:
+        return
+
+    found_profile = filter_profiles(
+        multiple_templates_profiles,
+        {
+            "task_names": task_name,
+            "task_types": task_type,
+        },
+        logger=log
+    )
+
+    return found_profile

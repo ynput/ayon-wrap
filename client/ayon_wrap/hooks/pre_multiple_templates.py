@@ -3,9 +3,9 @@ from ayon_applications import (
     LaunchTypes,
 )
 from ayon_core.tools.utils import qt_app_context
-from ayon_core.lib.profiles_filtering import filter_profiles
 
 from ayon_wrap.workfiles import WorkfilesToolWindow
+from ayon_wrap.api.lib import get_multiple_templates_profile
 
 
 class PreLaunchMultipleTemplatesHook(PreLaunchHook):
@@ -28,20 +28,10 @@ class PreLaunchMultipleTemplatesHook(PreLaunchHook):
         task_name = task_entity["name"]
         task_type = task_entity["taskType"]
 
-        wrap_settings = context_data["project_settings"]["wrap"]
-        multiple_templates_profiles = (
-            wrap_settings)["multiple_templates_per_tasks"]["profiles"]
-        if not multiple_templates_profiles:
-            return
-
-        found_profile = filter_profiles(
-            multiple_templates_profiles,
-            {
-                "task_names": task_name,
-                "task_types": task_type,
-            },
-            logger=self.log
+        found_profile = get_multiple_templates_profile(
+            context_data["project_settings"], task_name, task_type, self.log
         )
+
         if not found_profile:
             return
 
