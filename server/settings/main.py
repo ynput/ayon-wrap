@@ -12,7 +12,7 @@ class WrapSettings(BaseSettingsModel):
         title="Workfile Builder"
     )
 
-    multiple_templates_per_taks:  MultipleTemplatesModel = Field(
+    multiple_templates_per_tasks:  MultipleTemplatesModel = Field(
         default_factory=MultipleTemplatesModel,
         title="Multiple templates per task",
         description="Configure paths for multiple templates for single task. "
