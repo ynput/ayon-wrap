@@ -21,5 +21,14 @@ class WrapSettings(BaseSettingsModel):
 
 
 DEFAULT_WRAP_SETTING = {
-
+  "workfile_builder": {
+    "create_first_version": False,
+  },
+  "multiple_templates_per_tasks": {
+    "workfile_template": {
+      "directory_template": "{root[work]}/{project[name]}/{hierarchy}/{folder[name]}/work/{task[name]}/{template_name}",
+      "filename_template": "{project[code]}_{folder[name]}_{task[name]}_{template_name}_{@version}<_{comment}>.{ext}"
+    },
+    "profiles": []
+  }
 }

@@ -35,7 +35,23 @@ class TemplateProfileModel(BaseSettingsModel):
     )
 
 
+class WorkfileTemplateModel(BaseSettingsModel):
+    directory_template: str = SettingsField(
+        "",
+        title="Directory template"
+    )
+    filename_template: str = SettingsField(
+        "",
+        title="File name template"
+    )
+
+
 class MultipleTemplatesModel(BaseSettingsModel):
+    workfile_template: WorkfileTemplateModel = SettingsField(
+        default_factory=WorkfileTemplateModel,
+        title="Workfile template", 
+        description="Configure enhanced workfile path template by template name"
+    )
     profiles: list[TemplateProfileModel] = SettingsField(
         default_factory=list
     )
