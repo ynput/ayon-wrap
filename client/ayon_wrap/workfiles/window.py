@@ -215,7 +215,6 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
         on_top = False if on_top is None else on_top
 
         is_visible = self.isVisible()
-        self._controller.set_save_enabled(save)
         self.set_window_on_top(on_top)
 
         self.show()

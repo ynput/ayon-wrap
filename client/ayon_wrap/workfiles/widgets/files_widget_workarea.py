@@ -9,11 +9,6 @@ from ayon_core.style import (
 from ayon_core.tools.utils import TreeView
 from ayon_core.tools.utils.delegates import PrettyTimeDelegate
 
-from ayon_core.tools.workfiles.widgets.files_widget_workarea import (
-    WorkAreaFilesModel,
-    WorkAreaFilesWidget
-)
-
 FILENAME_ROLE = QtCore.Qt.UserRole + 1
 FILEPATH_ROLE = QtCore.Qt.UserRole + 2
 AUTHOR_ROLE = QtCore.Qt.UserRole + 3
