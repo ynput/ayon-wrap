@@ -113,10 +113,6 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
         show_timer.timeout.connect(self._on_show)
 
         controller.register_event_callback(
-            "open_workfile.finished",
-            self._on_open_finished
-        )
-        controller.register_event_callback(
             "controller.reset.started",
             self._on_controller_refresh_started,
         )
@@ -279,20 +275,12 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
     def _on_controller_refresh_finished(self):
         pass
 
-    def _on_open_finished(self, event):
-        if event["failed"]:
-            self._overlay_messages_widget.add_message(
-                "Failed to open workfile",
-                "error",
-            )
-        else:
-            self.close()
-
     def _on_workarea_open_clicked(self):
         path = self._files_widget.get_selected_path()
         if not path:
             return
         self._controller.open_workfile(path)
+        self.close()
 
     def _on_workarea_create_clicked(self):
         created_filepath = self._controller.create_new_workfile()
