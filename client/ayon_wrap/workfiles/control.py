@@ -197,8 +197,12 @@ class WorkfileToolController:
         task_type = self._current_task_entity["taskType"]
         templates = self._get_template_paths(
             self._project_settings, task_name, task_type)
+        is_first = True
         for template_name in templates.keys():
-            QtWidgets.QListWidgetItem(template_name, templates_widget)
+            item = QtWidgets.QListWidgetItem(template_name, templates_widget)
+            if is_first:
+                item.setSelected(True)
+                is_first = False
 
         self._templates = templates
 
