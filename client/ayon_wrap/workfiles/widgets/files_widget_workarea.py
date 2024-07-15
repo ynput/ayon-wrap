@@ -232,6 +232,7 @@ class MultiWorkAreaFilesModel(QtGui.QStandardItemModel):
         self._selected_folder_id = event["folder_id"]
         self._selected_task_name = event["task_name"]
         self._fill_items()
+        self._controller.emit_event("controller.reset.finished")
 
 
 class MultiWorkAreaFilesWidget(QtWidgets.QWidget):

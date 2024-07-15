@@ -272,7 +272,13 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
         self._controller_refreshed = True
 
     def _on_controller_refresh_finished(self):
-        pass
+        if self._files_widget._proxy_model.rowCount() < 1:
+            # no workfiles in workarea
+            self._workarea_btn_open.setEnabled(False)
+            self._workarea_btn_create.setEnabled(True)
+        else:
+            self._workarea_btn_open.setEnabled(True)
+            self._workarea_btn_create.setEnabled(False)
 
     def _on_workarea_open_clicked(self):
         path = self._files_widget.get_selected_path()
