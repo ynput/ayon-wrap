@@ -1,3 +1,5 @@
+import os.path
+
 from ayon_applications import (
     PreLaunchHook,
     LaunchTypes,
@@ -50,3 +52,8 @@ class PreLaunchMultipleTemplatesHook(PreLaunchHook):
             workfiles_tool.showNormal()
 
             workfiles_tool.exec_()
+            workfile_path = os.environ.get("WRAP_WORKFILE_PATH")
+            if not workfile_path or not os.path.exists(workfile_path):
+                raise RuntimeError(f"'{workfile_path} doesn't exist!")
+            self.log.debug(f"Opening {workfile_path} from multiple templates")
+            self.data["last_workfile_path"] = workfile_path

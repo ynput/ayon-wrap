@@ -289,7 +289,10 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
             self.close()
 
     def _on_workarea_open_clicked(self):
-        pass
+        path = self._files_widget.get_selected_path()
+        if not path:
+            return
+        self._controller.open_workfile(path)
 
     def _on_workarea_create_clicked(self):
         created_filepath = self._controller.create_new_workfile()

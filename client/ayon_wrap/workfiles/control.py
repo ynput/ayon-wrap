@@ -219,8 +219,11 @@ class WorkfileToolController:
 
         return templates
 
+    def open_workfile(self, path):
+        os.environ["WRAP_WORKFILE_PATH"] = path
+
     def create_new_workfile(self):
-        """Copies template to workarea and returns its path."""
+        """Copies template to workarea"""
         if not self.current_template_name:
             raise RuntimeError("No template chosen yet!")
 
@@ -242,5 +245,4 @@ class WorkfileToolController:
         first_workfile_path = os.path.join(workdir, work_filename)
         shutil.copy(template_path, first_workfile_path)
 
-        return first_workfile_path
-
+        os.environ["WRAP_WORKFILE_PATH"] = first_workfile_path
