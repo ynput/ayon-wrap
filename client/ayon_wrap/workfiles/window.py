@@ -72,9 +72,26 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
 
         pages_widget.addWidget(home_page_widget)
 
+        btns_widget = QtWidgets.QWidget(self)
+
+        workarea_btns_widget = QtWidgets.QWidget(btns_widget)
+        workarea_btn_create = QtWidgets.QPushButton(
+            "Create New", workarea_btns_widget)
+        workarea_btn_open = QtWidgets.QPushButton(
+            "Open", workarea_btns_widget)
+
+        workarea_btns_layout = QtWidgets.QHBoxLayout(workarea_btns_widget)
+        workarea_btns_layout.setContentsMargins(450, 0, 0, 0)
+        workarea_btns_layout.addWidget(workarea_btn_create, 1)
+        workarea_btns_layout.addWidget(workarea_btn_open, 1)
+
+        workarea_btn_open.clicked.connect(self._on_workarea_open_clicked)
+        workarea_btn_create.clicked.connect(self._on_workarea_create_clicked)
+
         # Build home
         home_page_layout = QtWidgets.QVBoxLayout(home_page_widget)
         home_page_layout.addWidget(home_body_widget)
+        home_page_layout.addWidget(workarea_btns_widget)
 
         # Build home - body
         body_layout = QtWidgets.QVBoxLayout(home_body_widget)
@@ -82,8 +99,6 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
         split_widget.addWidget(templates_widget)
         split_widget.addWidget(workfile_widget)
 
-        # split_widget.addWidget(col_3_widget)
-        # split_widget.addWidget(side_panel)
         split_widget.setSizes([175, 275])
 
         body_layout.addWidget(split_widget)
@@ -114,6 +129,9 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
         self._pages_widget = pages_widget
         self._home_body_widget = home_body_widget
         self._split_widget = split_widget
+
+        self._workarea_btn_open = workarea_btn_open
+        self._workarea_btn_create = workarea_btn_create
 
         self._show_timer = show_timer
 
@@ -247,6 +265,7 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
             "template_changed.started",
             data=data
         )
+        self._controller._current_template_name = template_item.text()
 
     def _on_file_text_filter_change(self, text):
         self._files_widget.set_text_filter(text)
@@ -268,3 +287,9 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
             )
         else:
             self.close()
+
+    def _on_workarea_open_clicked(self):
+        pass
+
+    def _on_workarea_create_clicked(self):
+        created_filepath = self._controller.create_new_workfile()
