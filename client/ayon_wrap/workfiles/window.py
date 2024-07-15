@@ -79,6 +79,7 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
             "Create New", workarea_btns_widget)
         workarea_btn_open = QtWidgets.QPushButton(
             "Open", workarea_btns_widget)
+        workarea_btns_widget.setFixedHeight(50)
 
         workarea_btns_layout = QtWidgets.QHBoxLayout(workarea_btns_widget)
         workarea_btns_layout.setContentsMargins(450, 0, 0, 0)
