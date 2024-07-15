@@ -3,17 +3,7 @@ from qtpy import QtCore, QtWidgets, QtGui
 from ayon_core import style, resources
 from ayon_core.tools.utils import (
     PlaceholderLineEdit,
-    MessageOverlayObject,
 )
-
-from ayon_core.tools.workfiles.control import BaseWorkfileController
-from ayon_core.tools.utils import (
-    GoToCurrentButton,
-    RefreshButton,
-    FoldersWidget,
-    TasksWidget,
-)
-# from .files_widget import FilesWidget
 from .control import WorkfileToolController
 from .widgets.files_widget_workarea import MultiWorkAreaFilesWidget
 
@@ -289,4 +279,5 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
         self.close()
 
     def _on_workarea_create_clicked(self):
-        created_filepath = self._controller.create_new_workfile()
+        self._controller.create_new_workfile()
+        self.close()
