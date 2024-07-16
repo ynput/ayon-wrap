@@ -259,7 +259,7 @@ class MultiWorkAreaFilesWidget(QtWidgets.QWidget):
 
         # Default to a wider first filename column it is what we mostly care
         # about and the date modified is relatively small anyway.
-        view.setColumnWidth(0, 330)
+        view.setColumnWidth(0, 300)
 
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)

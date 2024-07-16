@@ -67,7 +67,7 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
         # - add widgets to splitter
         split_widget.addWidget(templates_widget)
         split_widget.addWidget(files_wrapper_widget)
-        split_widget.setSizes([175, 275])
+        split_widget.setSizes([70, 610])
 
         btns_widget = QtWidgets.QWidget(self)
         workarea_btn_create = QtWidgets.QPushButton(
@@ -117,7 +117,7 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
         self._show_timer_count = 0
         self._show_reset_needed = False
 
-        self.resize(1260, 600)
+        self.resize(630, 380)
 
     def refresh(self):
         """Trigger refresh of workfiles tool controller."""
