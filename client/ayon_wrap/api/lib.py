@@ -1,6 +1,5 @@
 import collections
 
-from ayon_applications import ApplicationLaunchFailed
 from ayon_api import (
     get_folder_by_path,
     get_last_versions,
