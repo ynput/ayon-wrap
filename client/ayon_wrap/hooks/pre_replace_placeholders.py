@@ -2,11 +2,8 @@ import os
 import shutil
 import json
 
-from ayon_applications import (
-    PreLaunchHook,
-    LaunchTypes,
-    ApplicationLaunchFailed
-)
+from ayon_applications import PreLaunchHook, LaunchTypes
+
 from ayon_core.pipeline import AVALON_CONTAINER_ID
 from ayon_core.lib import get_version_from_path
 
