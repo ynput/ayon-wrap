@@ -48,8 +48,6 @@ class MultiWorkAreaFilesModel(QtGui.QStandardItemModel):
         self._missing_context_used = False
         self._empty_root_item = None
         self._empty_item_used = False
-        self._selected_folder_id = None
-        self._selected_task_name = None
 
         self._add_missing_context_item()
 
@@ -65,9 +63,6 @@ class MultiWorkAreaFilesModel(QtGui.QStandardItemModel):
         if item is None:
             return QtCore.QModelIndex()
         return self.indexFromItem(item)
-
-    def refresh(self):
-        self._fill_items()
 
     def _get_missing_context_item(self):
         if self._missing_context_item is None:
@@ -142,10 +137,8 @@ class MultiWorkAreaFilesModel(QtGui.QStandardItemModel):
             self.refreshed.emit()
 
     def _fill_items_impl(self):
-        folder_id = self._selected_folder_id
-        task_name = self._selected_task_name
         template_name = self._selected_template_name
-        if not folder_id or not task_name or not template_name:
+        if not template_name:
             self._add_missing_context_item()
             return
 
@@ -229,10 +222,7 @@ class MultiWorkAreaFilesModel(QtGui.QStandardItemModel):
 
     def _on_template_changed(self, event):
         self._selected_template_name = event["template_name"]
-        self._selected_folder_id = event["folder_id"]
-        self._selected_task_name = event["task_name"]
         self._fill_items()
-        self._controller.emit_event("controller.reset.finished")
 
 
 class MultiWorkAreaFilesWidget(QtWidgets.QWidget):
@@ -275,16 +265,9 @@ class MultiWorkAreaFilesWidget(QtWidgets.QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.addWidget(view, 1)
 
-        selection_model = view.selectionModel()
-        selection_model.selectionChanged.connect(self._on_selection_change)
         view.double_clicked.connect(self._on_mouse_double_click)
         view.customContextMenuRequested.connect(self._on_context_menu)
         model.refreshed.connect(self._on_model_refresh)
-
-        controller.register_event_callback(
-            "expected_selection_changed",
-            self._on_expected_selection_change
-        )
 
         self._view = view
         self._model = model
@@ -294,6 +277,9 @@ class MultiWorkAreaFilesWidget(QtWidgets.QWidget):
 
         self._published_mode = False
         self._change_selection_on_refresh = True
+
+    def has_visible_items(self):
+        return self._proxy_model.rowCount() > 0
 
     def set_text_filter(self, text_filter):
         """Set the text filter.
@@ -325,10 +311,6 @@ class MultiWorkAreaFilesWidget(QtWidgets.QWidget):
         """
         return self._get_selected_info()["filepath"]
 
-    def _on_selection_change(self):
-        filepath = self.get_selected_path()
-        # self._controller.set_selected_workfile_path(filepath)
-
     def _on_mouse_double_click(self, event):
         if event.button() == QtCore.Qt.LeftButton:
             self.open_current_requested.emit()
@@ -357,29 +339,6 @@ class MultiWorkAreaFilesWidget(QtWidgets.QWidget):
 
     def _on_duplicate_pressed(self):
         self.duplicate_requested.emit()
-
-    def _on_expected_selection_change(self, event):
-        workfile_info = event["workfile"]
-        if not workfile_info["current"]:
-            return
-
-        self._change_selection_on_refresh = False
-        self._model.refresh()
-        self._change_selection_on_refresh = True
-
-        workfile_name = workfile_info["name"]
-        if (
-            workfile_name is not None
-            and workfile_name != self._get_selected_info()["filename"]
-        ):
-            index = self._model.get_index_by_filename(workfile_name)
-            if index.isValid():
-                proxy_index = self._proxy_model.mapFromSource(index)
-                self._view.setCurrentIndex(proxy_index)
-
-        self._controller.expected_workfile_selected(
-            event["folder"]["id"], event["task"]["name"], workfile_name
-        )
 
     def _on_model_refresh(self):
         if (
