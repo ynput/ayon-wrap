@@ -1,20 +1,19 @@
-import platform
 import os
+import platform
 import shutil
+import copy
 
 import ayon_api
-from qtpy import QtWidgets
 
 from ayon_core.lib.events import QueuedEventSystem
-
-from ayon_core.pipeline import Anatomy
 from ayon_core.settings import get_project_settings
-from ayon_core.pipeline.template_data import (
-    get_template_data,
-)
+from ayon_core.pipeline import Anatomy
+from ayon_core.pipeline.version_start import get_versioning_start
+from ayon_core.pipeline.template_data import get_template_data
 
 from ayon_wrap.api.lib import get_multiple_templates_profile
-from ayon_wrap.workfiles.abstract import FileItem
+
+from .abstract import FileItem
 
 
 class WorkfileToolController:
@@ -31,21 +30,24 @@ class WorkfileToolController:
         folder_entity = ayon_api.get_folder_by_id(project_name, folder_id)
         if not folder_entity:
             raise RuntimeError(f"Couldn't find folder for {folder_id}")
-        self._current_folder_entity = folder_entity
 
         task_entity = ayon_api.get_task_by_id(project_name, task_id)
         if not task_entity:
             raise RuntimeError(f"Couldn't find task for {task_id}")
-        self._current_task_entity = task_entity
+
+        project_entity = ayon_api.get_project(project_name)
 
         self._current_project_name = project_name
         self._current_folder_id = folder_id
         self._current_task_id = task_id
         self._current_template_name = None
 
-        self._project_settings = get_project_settings(
-            self._current_project_name)
-        self._anatomy = Anatomy(self._current_project_name)
+        self._anatomy = None
+        self._project_entity = project_entity
+        self._task_entity = task_entity
+        self._folder_entity = folder_entity
+
+        self._project_settings = get_project_settings(project_name)
 
         self._templates = {}
         self._template_workdirs = {}
@@ -55,19 +57,22 @@ class WorkfileToolController:
         self._workfile_info_cache = {}
 
     def reset(self):
-        pass
+        self._templates = self._get_template_paths(
+            self._project_settings,
+            self.current_task_name,
+            self.current_task_type
+        )
+        self._anatomy = None
 
-    @property
-    def current_project_name(self):
-        return self._current_project_name
+        self.emit_event("controller.reset.finished")
 
     @property
     def current_task_name(self):
-        return self._current_task_entity["name"]
+        return self._task_entity["name"]
 
     @property
     def current_task_type(self):
-        return self._current_task_entity["taskType"]
+        return self._task_entity["taskType"]
 
     @property
     def current_folder_id(self):
@@ -91,31 +96,42 @@ class WorkfileToolController:
     def get_host_name(self):
         return "wrap"
 
-    def _create_event_system(self):
-        return QueuedEventSystem()
+    def set_template(self, template_name):
+        self._current_template_name = template_name
+        data = {
+            "template_name": template_name,
+            "folder_id": self.current_folder_id,
+            "task_name": self.current_task_name,
+            "task_type": self.current_task_type,
+        }
+        self.emit_event(
+            "template_changed.started",
+            data=data
+        )
 
     def get_workarea_file_items(self, template_name):
-        items = []
         workdir = self._template_workdirs.get(template_name)
-        if not workdir:
+        if workdir is None:
             workdir = self._get_workdir(template_name)
             self._template_workdirs[template_name] = workdir
 
+        items = []
         if not os.path.exists(workdir):
             return items
 
+        exts = self.get_workfile_extensions()
         for filename in os.listdir(workdir):
             filepath = os.path.join(workdir, filename)
             if not os.path.isfile(filepath):
                 continue
 
             ext = os.path.splitext(filename)[1].lower()
-            if ext not in self.get_workfile_extensions():
+            if ext not in exts:
                 continue
 
             workfile_info = self._get_workfile_info(
                 self._current_project_name,
-                self._current_task_entity["id"],
+                self._current_task_id,
                 filepath
             )
             modified = os.path.getmtime(filepath)
@@ -132,48 +148,83 @@ class WorkfileToolController:
             ))
         return items
 
-    def _get_workdir(self, template_name):
-        """Calculates workdir for template_name"""
-        template_data = self._get_template_data(template_name)
+    def get_template_names(self):
+        """Adds template names into templates_widget"""
+        return list(self._templates.keys())
+
+    def open_workfile(self, path):
+        os.environ["WRAP_WORKFILE_PATH"] = path
+
+    def create_new_workfile(self):
+        """Copies template to workarea"""
+        if not self._current_template_name:
+            raise RuntimeError("No template chosen yet!")
+
+        if not self._templates:
+            raise RuntimeError("No templates found!")
+
+        template_path = self._templates[self._current_template_name]
+
+        workdir = self._template_workdirs.get(self._current_template_name)
+        if not workdir:
+            raise RuntimeError(
+                f"Not workfile found for {self._current_template_name}"
+            )
+
+        work_filename = self._get_first_workfile_name(
+            self._current_template_name)
+
+        if not os.path.exists(workdir):
+            os.makedirs(workdir, exist_ok=True)
+        first_workfile_path = os.path.join(workdir, work_filename)
+        shutil.copy(template_path, first_workfile_path)
+
+        os.environ["WRAP_WORKFILE_PATH"] = first_workfile_path
+
+    def _create_event_system(self):
+        return QueuedEventSystem()
+
+    def _get_current_anatomy(self):
+        if self._anatomy is not None:
+            return self._anatomy
+        # Duplicate project so we can modify it
+        project_entity = copy.deepcopy(self._project_entity)
+        work_templates = project_entity["config"]["templates"]["work"]
+
+        # NOTE This should not be taken from settings but from anatomy
+        #   templates
         template = (
             self._project_settings["wrap"]
             ["multiple_templates_per_tasks"]
             ["workfile_template"]
         )
-        directory_template = template["directory_template"]
 
-        workdir = directory_template.format(**template_data)
-        return workdir
-
-    def _get_first_workfile_name(self, template_name):
-        template_data = self._get_template_data(template_name)
-        template_data["@version"] = "v001"
-        template_data["comment"] = ""
-        template_data["ext"] = (self.get_workfile_extensions()[0]
-                                    .replace(".", ""))
-        template = (
-            self._project_settings["wrap"]
-            ["multiple_templates_per_tasks"]
-            ["workfile_template"]
+        # Fake wrap template
+        work_templates["_fake_wrap"] = {
+            "directory": template["directory_template"],
+            "file": template["filename_template"]
+        }
+        self._anatomy = Anatomy(
+            self._current_project_name,
+            project_entity=project_entity
         )
-        filename_template = template["filename_template"]
+        return self._anatomy
 
-        work_filename = filename_template.format(**template_data)
-        return work_filename
+    def _get_template_paths(self, project_settings, task_name, task_type):
+        """Returns dictionary of templates and its paths."""
+        templates = {}
 
-
-    def _get_template_data(self, template_name):
-        project_entity = ayon_api.get_project(self._current_project_name)
-        template_data = get_template_data(
-            project_entity,
-            self._current_folder_entity,
-            self._current_task_entity,
-            self.get_host_name(),
-            self._project_settings
+        profile = get_multiple_templates_profile(
+            project_settings,
+            task_name,
+            task_type
         )
-        template_data["root"] = self._anatomy.roots
-        template_data["template_name"] = template_name
-        return template_data
+        platform_name = platform.system().lower()
+        for template in profile["templates"]:
+            template_name = template["template_name"]
+            templates[template_name] = template["path"][platform_name]
+
+        return templates
 
     def _get_workfile_info(
             self, project_name, task_id, workfile_path):
@@ -191,62 +242,42 @@ class WorkfileToolController:
             self._workfile_info_cache[workfile_path] = workfile_info
         return self._workfile_info_cache.get(workfile_path)
 
-    def fill_templates(self, templates_widget):
-        """Adds template names into templates_widget"""
-        task_name = self._current_task_entity["name"]
-        task_type = self._current_task_entity["taskType"]
-        templates = self._get_template_paths(
-            self._project_settings, task_name, task_type)
-        is_first = True
-        for template_name in templates.keys():
-            item = QtWidgets.QListWidgetItem(template_name, templates_widget)
-            if is_first:
-                item.setSelected(True)
-                is_first = False
-
-        self._templates = templates
-
-    def _get_template_paths(self, project_settings, task_name, task_type):
-        """Returns dictionary of templates and its paths."""
-        templates = {}
-
-        profile = get_multiple_templates_profile(
-            project_settings,
-            task_name,
-            task_type
+    def _get_template_data(self, template_name):
+        project_entity = ayon_api.get_project(self._current_project_name)
+        template_data = get_template_data(
+            project_entity,
+            self._folder_entity,
+            self._task_entity,
+            self.get_host_name(),
+            self._project_settings
         )
-        current_platform = platform.system().lower()
+        anatomy = self._get_current_anatomy()
+        template_data["root"] = anatomy.roots
+        template_data["template_name"] = template_name
+        return template_data
 
-        for template in profile["templates"]:
-            template_path = template["path"][current_platform]
-            templates[template["template_name"]] = template_path
+    def _get_workdir(self, template_name):
+        """Calculates workdir for template_name"""
+        template_data = self._get_template_data(template_name)
+        anatomy = self._get_current_anatomy()
+        template = anatomy.get_template_item("work", "_fake_wrap" "directory")
+        return template.format(template_data)
 
-        return templates
+    def _get_first_workfile_name(self, template_name):
+        template_data = self._get_template_data(template_name)
+        ext = self.get_workfile_extensions()[0].lstrip(".")
+        version = get_versioning_start(
+            self._current_project_name,
+            self.get_host_name(),
+            task_name=self.current_task_name,
+            task_type=self.current_task_type,
+            project_settings=self._project_settings
+        )
+        template_data["version"] = version
+        template_data["comment"] = ""
+        template_data["ext"] = ext
 
-    def open_workfile(self, path):
-        os.environ["WRAP_WORKFILE_PATH"] = path
+        anatomy = self._get_current_anatomy()
+        template = anatomy.get_template_item("work", "_fake_wrap" "file")
 
-    def create_new_workfile(self):
-        """Copies template to workarea"""
-        if not self.current_template_name:
-            raise RuntimeError("No template chosen yet!")
-
-        if not self._templates:
-            raise RuntimeError("No templates found!")
-
-        template_path = self._templates[self.current_template_name]
-
-        workdir = self._template_workdirs.get(self.current_template_name)
-        if not workdir:
-            raise RuntimeError("Not workfile found for "
-                               f"{self.current_template_name}")
-
-        work_filename = self._get_first_workfile_name(
-            self.current_template_name)
-
-        if not os.path.exists(workdir):
-            os.makedirs(workdir, exist_ok=True)
-        first_workfile_path = os.path.join(workdir, work_filename)
-        shutil.copy(template_path, first_workfile_path)
-
-        os.environ["WRAP_WORKFILE_PATH"] = first_workfile_path
+        return template.format(template_data)

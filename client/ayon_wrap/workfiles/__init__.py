@@ -1,6 +1,8 @@
-from .window import WorkfilesToolWindow
+from .abstract import FileItem
+from .control import WorkfileToolController
 
 
 __all__ = (
-    "WorkfilesToolWindow",
+    "FileItem",
+    "WorkfileToolController",
 )
