@@ -66,7 +66,7 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
 
         # - add widgets to splitter
         split_widget.addWidget(templates_widget)
-        split_widget.addWidget(files_widget)
+        split_widget.addWidget(files_wrapper_widget)
         split_widget.setSizes([175, 275])
 
         btns_widget = QtWidgets.QWidget(self)
