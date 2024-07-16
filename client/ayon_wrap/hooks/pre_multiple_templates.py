@@ -6,7 +6,6 @@ from ayon_applications import (
 )
 from ayon_core.tools.utils import qt_app_context
 
-from ayon_wrap.workfiles import WorkfilesToolWindow
 from ayon_wrap.api.lib import get_multiple_templates_profile
 
 
@@ -25,6 +24,8 @@ class PreLaunchMultipleTemplatesHook(PreLaunchHook):
     launch_types = {LaunchTypes.local}
 
     def execute(self):
+        from ayon_wrap.workfiles.widgets import WorkfilesToolWindow
+
         context_data = self.launch_context.data
         task_entity = context_data["task_entity"]
         task_name = task_entity["name"]
