@@ -1,5 +1,4 @@
-from pydantic import Field
-from ayon_server.settings import BaseSettingsModel
+from ayon_server.settings import BaseSettingsModel, SettingsField
 from .workfile_builder import WorkfileBuilderPlugin
 from .multiple_templates import MultipleTemplatesModel
 
@@ -7,12 +6,12 @@ from .multiple_templates import MultipleTemplatesModel
 class WrapSettings(BaseSettingsModel):
     """Wrap Project Settings."""
 
-    workfile_builder: WorkfileBuilderPlugin = Field(
+    workfile_builder: WorkfileBuilderPlugin = SettingsField(
         default_factory=WorkfileBuilderPlugin,
         title="Workfile Builder"
     )
 
-    multiple_templates_per_tasks:  MultipleTemplatesModel = Field(
+    multiple_templates_per_tasks:  MultipleTemplatesModel = SettingsField(
         default_factory=MultipleTemplatesModel,
         title="Multiple templates per task",
         description="Configure paths for multiple templates for single task. "

@@ -1,6 +1,5 @@
 import collections
 
-from ayon_applications import ApplicationLaunchFailed
 from ayon_api import (
     get_folder_by_path,
     get_last_versions,
@@ -102,7 +101,7 @@ def _get_version(project_name, product_name, product_id,
     else:
         try:
             version_int = int(version_val)
-        except:
+        except BaseException:
             raise PlaceholderFillException(
                 f"Couldn't convert value '{version_val}' to "
                 f"integer. Please fix it in '{workfile_path}'")
