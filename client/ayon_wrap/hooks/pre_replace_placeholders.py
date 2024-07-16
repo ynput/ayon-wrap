@@ -3,7 +3,7 @@ import shutil
 import json
 
 from ayon_applications import PreLaunchHook, LaunchTypes
-from ayon_core.pipeline import Anatomy, AVALON_CONTAINER_ID
+from ayon_core.pipeline import AVALON_CONTAINER_ID
 from ayon_core.lib import get_version_from_path
 
 from ayon_wrap import api

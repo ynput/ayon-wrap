@@ -97,7 +97,7 @@ def _get_version(project_name, product_name, product_id,
     else:
         try:
             version_int = int(version_val)
-        except:
+        except BaseException:
             raise ApplicationLaunchFailed(
                 f"Couldn't convert value '{version_val}' to "
                 f"integer. Please fix it in '{workfile_path}'")
