@@ -7,6 +7,30 @@ These template workfiles could contain placeholders which will be textually repl
 ## Custom templates
 Configure `ayon+settings://wrap/workfile_builder/custom_templates` to add profiles to select particular `.wrap` template for a task.
 
+## Multi templates per task
+If your use case requires usage of multiple templates for single task (imagine it as steps)
+```
+Example:
+- ALIGN (task)
+  - align scan (step)
+  - align scan render
+  - retouch sheet
+- MODEL (task)
+  - wrap (step)
+```
+admin needs to configure location of separate templates in `ayon+settings://wrap/multiple_templates_per_tasks`.
+
+Inputs are type name or type and returned value is path to template.
+
+There is also need for additional new template in `Anatomy`. It is expected to be called `wrap_multi` and would look like:
+```
+Directory template: {root[work]}/{project[name]}/{hierarchy}/{folder[name]}/work/{task[name]}</{template_name}>
+File name template: {project[code]}_{folder[name]}_{task[name]}<_{template_name}>_{@version}.{ext}
+```
+That added `</{template_name}>` is important to separate workfiles for particular template into subfolders.
+
+Artist then will be shown with new Dialog where they can select from list of templates and shown if any workfile exist for those.
+
 ## Load placeholders
 Read nodes which should be controlled by AYON needs to contain `AYON.` prefix in `File name` property.
 

@@ -37,6 +37,9 @@ class WorkfileToolController:
 
         project_entity = ayon_api.get_project(project_name)
 
+        # template name in Anatomy
+        self.wrap_template_name = "wrap_multi"
+
         self._current_project_name = project_name
         self._current_folder_id = folder_id
         self._current_task_id = task_id
@@ -189,21 +192,7 @@ class WorkfileToolController:
             return self._anatomy
         # Duplicate project so we can modify it
         project_entity = copy.deepcopy(self._project_entity)
-        work_templates = project_entity["config"]["templates"]["work"]
 
-        # NOTE This should not be taken from settings but from anatomy
-        #   templates
-        template = (
-            self._project_settings["wrap"]
-            ["multiple_templates_per_tasks"]
-            ["workfile_template"]
-        )
-
-        # Fake wrap template
-        work_templates["_fake_wrap"] = {
-            "directory": template["directory_template"],
-            "file": template["filename_template"]
-        }
         self._anatomy = Anatomy(
             self._current_project_name,
             project_entity=project_entity
@@ -260,7 +249,8 @@ class WorkfileToolController:
         """Calculates workdir for template_name"""
         template_data = self._get_template_data(template_name)
         anatomy = self._get_current_anatomy()
-        template = anatomy.get_template_item("work", "_fake_wrap" "directory")
+        template = anatomy.get_template_item(
+            "work", self.wrap_template_name, "directory")
         return template.format(template_data)
 
     def _get_first_workfile_name(self, template_name):
@@ -278,6 +268,7 @@ class WorkfileToolController:
         template_data["ext"] = ext
 
         anatomy = self._get_current_anatomy()
-        template = anatomy.get_template_item("work", "_fake_wrap" "file")
+        template = anatomy.get_template_item(
+            "work", self.wrap_template_name, "file")
 
         return template.format(template_data)
