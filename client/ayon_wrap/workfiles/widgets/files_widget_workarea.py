@@ -226,7 +226,6 @@ class MultiWorkAreaFilesModel(QtGui.QStandardItemModel):
     def _on_template_changed(self, event):
         self._selected_template_name = event["template_name"]
         self._fill_items()
-        self._controller.emit_event("controller.reset.finished")
 
 
 class MultiWorkAreaFilesWidget(QtWidgets.QWidget):
@@ -237,6 +236,7 @@ class MultiWorkAreaFilesWidget(QtWidgets.QWidget):
         parent (QtWidgets.QWidget): The parent widget.
     """
 
+    refreshed = QtCore.Signal()
     selection_changed = QtCore.Signal()
     open_current_requested = QtCore.Signal()
     duplicate_requested = QtCore.Signal()
@@ -271,6 +271,7 @@ class MultiWorkAreaFilesWidget(QtWidgets.QWidget):
 
         view.double_clicked.connect(self._on_mouse_double_click)
         view.customContextMenuRequested.connect(self._on_context_menu)
+        model.refreshed.connect(self.refreshed)
         model.refreshed.connect(self._on_model_refresh)
 
         self._view = view

@@ -94,6 +94,7 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
         templates_widget.currentItemChanged.connect(self._on_template_change)
         workarea_btn_open.clicked.connect(self._on_workarea_open_clicked)
         workarea_btn_create.clicked.connect(self._on_workarea_create_clicked)
+        files_widget.refreshed.connect(self._on_files_refresh)
 
         files_filter_input.textChanged.connect(
             self._on_file_text_filter_change)
@@ -164,11 +165,17 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
     def _on_refresh_clicked(self):
         self.refresh()
 
+    def _update_buttons_states(self):
+        available_items = self._files_widget.has_available_items()
+        self._workarea_btn_open.setEnabled(available_items)
+        self._workarea_btn_create.setEnabled(not available_items)
+
+    def _on_files_refresh(self):
+        self._update_buttons_states()
+
     def _on_controller_refresh_finished(self):
         self._show_reset_needed = False
-        visible_items = self._files_widget.has_available_items()
-        self._workarea_btn_open.setEnabled(visible_items)
-        self._workarea_btn_create.setEnabled(not visible_items)
+        self._update_buttons_states()
         self._fill_templates()
 
     def _fill_templates(self):
