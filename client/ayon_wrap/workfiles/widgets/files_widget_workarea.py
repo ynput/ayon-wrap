@@ -64,6 +64,9 @@ class MultiWorkAreaFilesModel(QtGui.QStandardItemModel):
             return QtCore.QModelIndex()
         return self.indexFromItem(item)
 
+    def has_available_items(self):
+        return bool(self._items_by_filename)
+
     def _get_missing_context_item(self):
         if self._missing_context_item is None:
             message = "Select folder and task"
@@ -279,8 +282,8 @@ class MultiWorkAreaFilesWidget(QtWidgets.QWidget):
         self._published_mode = False
         self._change_selection_on_refresh = True
 
-    def has_visible_items(self):
-        return len(self._model._items_by_filename) > 0
+    def has_available_items(self):
+        return self._model.has_available_items()
 
     def set_text_filter(self, text_filter):
         """Set the text filter.

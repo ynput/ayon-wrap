@@ -166,7 +166,7 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
 
     def _on_controller_refresh_finished(self):
         self._show_reset_needed = False
-        visible_items = self._files_widget.has_visible_items()
+        visible_items = self._files_widget.has_available_items()
         self._workarea_btn_open.setEnabled(visible_items)
         self._workarea_btn_create.setEnabled(not visible_items)
         self._fill_templates()
