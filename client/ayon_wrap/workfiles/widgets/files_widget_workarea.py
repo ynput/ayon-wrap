@@ -223,6 +223,7 @@ class MultiWorkAreaFilesModel(QtGui.QStandardItemModel):
     def _on_template_changed(self, event):
         self._selected_template_name = event["template_name"]
         self._fill_items()
+        self._controller.emit_event("controller.reset.finished")
 
 
 class MultiWorkAreaFilesWidget(QtWidgets.QWidget):
@@ -279,7 +280,7 @@ class MultiWorkAreaFilesWidget(QtWidgets.QWidget):
         self._change_selection_on_refresh = True
 
     def has_visible_items(self):
-        return self._proxy_model.rowCount() > 0
+        return len(self._model._items_by_filename) > 0
 
     def set_text_filter(self, text_filter):
         """Set the text filter.
