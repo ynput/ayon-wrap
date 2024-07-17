@@ -52,7 +52,7 @@ class MultiWorkAreaFilesModel(QtGui.QStandardItemModel):
         self._add_missing_context_item()
 
         controller.register_event_callback(
-            "template_changed.started",
+            "template_changed",
             self._on_template_changed
         )
 

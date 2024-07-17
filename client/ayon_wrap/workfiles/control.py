@@ -108,7 +108,7 @@ class WorkfileToolController:
             "task_type": self.current_task_type,
         }
         self.emit_event(
-            "template_changed.started",
+            "template_changed",
             data=data
         )
 
