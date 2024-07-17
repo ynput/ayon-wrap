@@ -281,7 +281,6 @@ class MultiWorkAreaFilesWidget(QtWidgets.QWidget):
         self._controller = controller
 
         self._published_mode = False
-        self._change_selection_on_refresh = True
 
     def has_available_items(self):
         return self._model.has_available_items()
@@ -346,10 +345,7 @@ class MultiWorkAreaFilesWidget(QtWidgets.QWidget):
         self.duplicate_requested.emit()
 
     def _on_model_refresh(self):
-        if (
-            not self._change_selection_on_refresh
-            or self._proxy_model.rowCount() < 1
-        ):
+        if self._proxy_model.rowCount() < 1:
             return
 
         # Find the row with latest date modified
