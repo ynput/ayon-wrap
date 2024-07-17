@@ -177,8 +177,6 @@ class WorkfilesToolWindow(QtWidgets.QDialog):
         existing_items = {}
         for idx in range(templates_widget.count()):
             item = templates_widget.item(idx)
-            if not item:
-                break
             existing_items[item.text()] = item
 
         for template_name in template_names:
