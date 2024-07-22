@@ -47,11 +47,6 @@ class PreLaunchMultipleTemplatesHook(PreLaunchHook):
                 "task_id": task_entity["id"]
             }
             workfiles_tool = WorkfilesToolWindow(launch_data=launch_data)
-            workfiles_tool.show()
-            workfiles_tool.raise_()
-            workfiles_tool.activateWindow()
-            workfiles_tool.showNormal()
-
             workfiles_tool.exec_()
             workfile_path = os.environ.get("WRAP_WORKFILE_PATH")
             if not workfile_path or not os.path.exists(workfile_path):
