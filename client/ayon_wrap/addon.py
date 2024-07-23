@@ -2,6 +2,8 @@ import os
 
 from ayon_core.addon import AYONAddon, IHostAddon, IPluginPaths
 
+from .version import __version__
+
 WRAP_HOST_DIR = os.path.dirname(os.path.abspath(__file__))
 CREATE_PATH = os.path.join(WRAP_HOST_DIR, "plugins", "create")
 PUBLISH_PATH = os.path.join(WRAP_HOST_DIR, "plugins", "publish")
@@ -9,6 +11,7 @@ PUBLISH_PATH = os.path.join(WRAP_HOST_DIR, "plugins", "publish")
 
 class WrapAddon(AYONAddon, IHostAddon, IPluginPaths):
     name = "wrap"
+    version = __version__
     host_name = "wrap"
 
     def get_workfile_extensions(self):
