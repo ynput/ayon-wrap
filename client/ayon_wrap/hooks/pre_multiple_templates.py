@@ -47,15 +47,10 @@ class PreLaunchMultipleTemplatesHook(PreLaunchHook):
                 "task_id": task_entity["id"]
             }
             workfiles_tool = WorkfilesToolWindow(launch_data=launch_data)
-            workfiles_tool.show()
-            workfiles_tool.raise_()
-            workfiles_tool.activateWindow()
-            workfiles_tool.showNormal()
-
             workfiles_tool.exec_()
             workfile_path = os.environ.get("WRAP_WORKFILE_PATH")
             if not workfile_path or not os.path.exists(workfile_path):
-                raise RuntimeError(f"'{workfile_path} doesn't exist!")
+                raise ApplicationLaunchFailed(f"'{workfile_path} doesn't exist!")
             workfile_path = os.path.normpath(workfile_path)
             self.log.debug(f"Opening {workfile_path} from multiple templates")
             self.data["last_workfile_path"] = os.path.normpath(workfile_path)
