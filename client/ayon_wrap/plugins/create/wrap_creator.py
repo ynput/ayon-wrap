@@ -24,6 +24,7 @@ class WrapCreator(TrayPublishCreator):
     Triggers separate creators inheriting from 'WrapProductBaseCreator' which
     provides different icons and separation into product_types blocks.
     """
+    # no API for Wrap, could get only triggered in Traypublisher
     host_name = "traypublisher"
     identifier = "wrap"
     product_type = None
