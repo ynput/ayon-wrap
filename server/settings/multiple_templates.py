@@ -10,7 +10,7 @@ class TemplatePathModel(BaseSettingsModel):
     """Definition of template and paths to its file."""
     template_name: str = SettingsField(
         "",
-        title="Template name"
+        title="Workfile Template name"
     )
     path: MultiplatformPathModel = SettingsField(
         default_factory=MultiplatformPathModel
