@@ -3,6 +3,7 @@ import os.path
 from ayon_applications import (
     PreLaunchHook,
     LaunchTypes,
+    ApplicationLaunchFailed
 )
 from ayon_core.tools.utils import qt_app_context
 
@@ -10,12 +11,12 @@ from ayon_wrap.api.lib import get_multiple_templates_profile
 
 
 class PreLaunchMultipleTemplatesHook(PreLaunchHook):
-    """Launch dialog to select from multiple templates for current task
+    """Launch dialog to select from multiple starting workfile for current task
 
     Uses profiles to check if current context should offer artist selection
-    from multiple templates.
+    from multiple workfile template.
 
-    It overrides usage of generic template from Workfile builder configuration.
+    It overrides usage of generic workfile from Workfile builder configuration.
 
     """
     app_groups = {"wrap"}
