@@ -8,6 +8,7 @@ import ayon_api
 from ayon_core.lib.events import QueuedEventSystem
 from ayon_core.settings import get_project_settings
 from ayon_core.pipeline import Anatomy
+from ayon_core.pipeline.workfile import get_workfile_template_key
 from ayon_core.pipeline.version_start import get_versioning_start
 from ayon_core.pipeline.template_data import get_template_data
 
@@ -37,9 +38,6 @@ class WorkfileToolController:
 
         project_entity = ayon_api.get_project(project_name)
 
-        # template name in Anatomy
-        self.wrap_template_name = "wrap_multi"
-
         self._current_project_name = project_name
         self._current_folder_id = folder_id
         self._current_task_id = task_id
@@ -51,6 +49,14 @@ class WorkfileToolController:
         self._folder_entity = folder_entity
 
         self._project_settings = get_project_settings(project_name)
+
+        # template name in Anatomy - determines location of saved workfile
+        self.wrap_workfile_template_key = get_workfile_template_key(
+            project_name,
+            task_entity["taskType"],
+            "wrap",
+            project_settings=self._project_settings
+        )
 
         self._templates = {}
         self._template_workdirs = {}
@@ -250,7 +256,7 @@ class WorkfileToolController:
         template_data = self._get_template_data(template_name)
         anatomy = self._get_current_anatomy()
         template = anatomy.get_template_item(
-            "work", self.wrap_template_name, "directory")
+            "work", self.wrap_workfile_template_key, "directory")
         return template.format(template_data)
 
     def _get_first_workfile_name(self, template_name):
@@ -269,6 +275,6 @@ class WorkfileToolController:
 
         anatomy = self._get_current_anatomy()
         template = anatomy.get_template_item(
-            "work", self.wrap_template_name, "file")
+            "work", self.wrap_workfile_template_key, "file")
 
         return template.format(template_data)

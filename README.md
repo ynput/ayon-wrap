@@ -22,12 +22,14 @@ admin needs to configure location of separate templates in `ayon+settings://wrap
 
 Inputs are type name or type and returned value is path to template.
 
-There is also need for additional new template in `Anatomy`. It is expected to be called `wrap_multi` and would look like:
+There is also need for additional new template in `Anatomy`. It is recommended to be called `wrap_multi` and would look like:
 ```
 Directory template: {root[work]}/{project[name]}/{hierarchy}/{folder[name]}/work/{task[name]}</{template_name}>
 File name template: {project[code]}_{folder[name]}_{task[name]}<_{template_name}>_{@version}.{ext}
 ```
 That added `</{template_name}>` is important to separate workfiles for particular template into subfolders.
+
+Add name of this new template to `ayon+settings://core/tools/Workfiles/workfile_template_profiles` with `Hosts` set to `wrap`.
 
 Artist then will be shown with new Dialog where they can select from list of templates and shown if any workfile exist for those.
 
