@@ -32,9 +32,11 @@ class WrapAddon(AYONAddon, IHostAddon, IPluginPaths):
         }
 
     def get_create_plugin_paths(self, host_name):
+        # to show WrapCreator in Traypublisher
         if host_name == "traypublisher":
             return [CREATE_PATH]
 
     def get_publish_plugin_paths(self, host_name):
+        # to use Wrap publish plugins in Traypublisher
         if host_name == "traypublisher":
             return [PUBLISH_PATH]

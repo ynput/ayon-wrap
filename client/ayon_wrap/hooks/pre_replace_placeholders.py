@@ -3,10 +3,12 @@ import shutil
 import json
 
 from ayon_applications import PreLaunchHook, LaunchTypes
+
 from ayon_core.pipeline import AVALON_CONTAINER_ID
 from ayon_core.lib import get_version_from_path
 
 from ayon_wrap import api
+from ayon_wrap.api.lib import PlaceholderFillException
 
 
 class ReplacePlaceholders(PreLaunchHook):
@@ -69,12 +71,18 @@ class ReplacePlaceholders(PreLaunchHook):
                 load_placeholder = self._get_load_placeholder(
                     node, stored_containers)
                 if load_placeholder:
-                    containers.append(
-                        self._containerize_load_placeholder(node,
-                                                            node_name,
-                                                            load_placeholder,
-                                                            workfile_path)
-                    )
+                    try:
+                        containers.append(
+                            self._containerize_load_placeholder(
+                                node,
+                                node_name,
+                                load_placeholder,
+                                workfile_path
+                            )
+                        )
+                    except PlaceholderFillException as exp:
+                        self.log.warning(f"{node_name} replacement "
+                                         f"failed with '{str(exp)}'")
 
                 if node_name.startswith("AYON_"):  #TODO
                     file_path = node["params"]["fileName"]["value"]

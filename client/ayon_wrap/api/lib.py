@@ -1,6 +1,5 @@
 import collections
 
-from ayon_applications import ApplicationLaunchFailed
 from ayon_api import (
     get_folder_by_path,
     get_last_versions,
@@ -11,9 +10,14 @@ from ayon_api import (
 )
 from ayon_core.pipeline import Anatomy
 from ayon_core.pipeline.load import get_representation_path_with_anatomy
+from ayon_core.lib.profiles_filtering import filter_profiles
 
 # expected pattern of placeholder value
 PLACEHOLDER_VALUE_PATTERN = "AYON.folder_token.product_name.version.ext"
+
+
+class PlaceholderFillException(Exception):
+    pass
 
 
 def fill_placeholder(placeholder, workfile_path, context):
@@ -27,7 +31,7 @@ def fill_placeholder(placeholder, workfile_path, context):
         (dict, str) path to resolved representation file which should be used
             instead of placeholder
     Raises
-        (ApplicationLaunchFailed) if path cannot be resolved (cannot find
+        (PlaceholderFillException) if path cannot be resolved (cannot find
         product, version etc.)
 
     """
@@ -75,7 +79,7 @@ def _get_repre_and_path(project_name, product_name, ext, version_id):
         representation_names=[ext]
     ))
     if not repres:
-        raise ApplicationLaunchFailed(
+        raise PlaceholderFillException(
             f"Cannot find representations with "
             f"'{ext}' for product '{product_name}'.\n"
             f"Cannot import them."
@@ -98,14 +102,14 @@ def _get_version(project_name, product_name, product_id,
         try:
             version_int = int(version_val)
         except BaseException:
-            raise ApplicationLaunchFailed(
+            raise PlaceholderFillException(
                 f"Couldn't convert value '{version_val}' to "
                 f"integer. Please fix it in '{workfile_path}'")
         version_doc = get_version_by_name(
             project_name, version_int, product_id)
     if not version_doc:
-        raise ApplicationLaunchFailed(f"Didn't find version "
-                                      f"for product '{product_name}.\n")
+        raise PlaceholderFillException(
+            f"Didn't find version for product '{product_name}.\n")
     version_id = version_doc["id"]
     return version_id
 
@@ -117,8 +121,8 @@ def _get_folder_entity(project_name, folder_token, context):
     folder_path = context["folder_path"]
     folder_entity = get_folder_by_path(project_name, folder_path)
     if not folder_entity:
-        raise ApplicationLaunchFailed(f"Couldn't find '{folder_token}' in "
-                                      f"'{project_name}'")
+        raise PlaceholderFillException(
+            f"Couldn't find '{folder_token}' in '{project_name}'")
 
     return folder_entity
 
@@ -128,8 +132,8 @@ def _get_product_id(project_name, folder_id, product_name, folder_path):
         project_name, product_name, folder_id
     )
     if not product_ent:
-        raise ApplicationLaunchFailed(f"Couldn't find '{product_name}' for "
-                                      f"'{folder_path}'")
+        raise PlaceholderFillException(
+            f"Couldn't find '{product_name}' for '{folder_path}'")
     product_id = product_ent["id"]
     return product_id
 
@@ -162,3 +166,24 @@ def find_variant_key(application_manager, host):
         raise ValueError("No executable for '{}' found".format(host))
 
     return found_variant_key
+
+
+def get_multiple_templates_profile(
+        project_settings, task_name, task_type, log=None):
+    """Returns configured profile for current context"""
+    wrap_settings = project_settings["wrap"]
+    multiple_templates_profiles = (
+        wrap_settings)["multiple_templates_per_tasks"]["profiles"]
+    if not multiple_templates_profiles:
+        return
+
+    found_profile = filter_profiles(
+        multiple_templates_profiles,
+        {
+            "task_names": task_name,
+            "task_types": task_type,
+        },
+        logger=log
+    )
+
+    return found_profile
