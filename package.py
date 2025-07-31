@@ -2,8 +2,8 @@ name = "wrap"
 title = "Wrap"
 version = "0.0.3-dev.1"
 app_host_name = "wrap"
-
 client_dir = "ayon_wrap"
+project_can_override_addon_version = True
 
 plugin_for = ["ayon_server"]
 build_command = ""
