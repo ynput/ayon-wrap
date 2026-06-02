@@ -40,18 +40,19 @@ class PreLaunchHostHook(PreLaunchHook):
             "run", script_path, executable_path
         )
         # Add workfile path if exists
-        workfile_path = self.data["last_workfile_path"]
+        workfile_path = self.data.get("workfile_path")
+        if not workfile_path and self.data.get("start_last_workfile"):
+            workfile_path = self.data["last_workfile_path"]
+
         if (
-                self.data.get("start_last_workfile")
-                and workfile_path
-                and os.path.exists(workfile_path)
-                and workfile_path not in new_launch_args):
+            workfile_path
+            and os.path.exists(workfile_path)
+            and workfile_path not in new_launch_args
+        ):
             new_launch_args.append(workfile_path)
             if workfile_path in remainders:
                 remainders.remove(workfile_path)
 
         # Append as whole list as these areguments should not be separated
         self.launch_context.launch_args.append(new_launch_args)
-
-        if remainders:
-            self.launch_context.launch_args.extend(remainders)
+        self.launch_context.launch_args.extend(remainders)
